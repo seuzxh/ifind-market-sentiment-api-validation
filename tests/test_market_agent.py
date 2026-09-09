@@ -1,5 +1,8 @@
 import datetime as dt
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -249,6 +252,35 @@ class RuleTests(unittest.TestCase):
                 {"instrument_code": "883957.TI", "trade_date": "2026-05-22", "close": 100, "pre_close": 99},
                 {"instrument_code": "883957.TI", "trade_date": "2026-05-26", "close": 101, "pre_close": 100},
             ], [])
+
+
+class CliTests(unittest.TestCase):
+    def test_missing_token_exits_before_request_and_does_not_echo_secret(self):
+        env = os.environ.copy()
+        env.pop("IFIND_ACCESS_TOKEN", None)
+        completed = subprocess.run(
+            [sys.executable, "market_agent.py", "status"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertNotIn("secret-token", completed.stdout)
+
+    def test_boundary_date_returns_explicit_json_state_without_token(self):
+        env = os.environ.copy()
+        env["IFIND_ACCESS_TOKEN"] = "test-only-token"
+        completed = subprocess.run(
+            [sys.executable, "market_agent.py", "status", "--date", "2026-05-25", "--json", "--no-save"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(completed.returncode, 1)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["as_of_date"], "2026-05-25")
+        self.assertEqual(payload["quality_status"], "边界日")
+        self.assertNotIn("test-only-token", completed.stdout)
 
 
 if __name__ == "__main__":

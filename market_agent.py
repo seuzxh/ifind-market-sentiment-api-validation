@@ -17,6 +17,8 @@ import urllib.parse
 import urllib.request
 import uuid
 from typing import Any
+import argparse
+import sys
 
 
 def _ok(payload: Mapping[str, Any]) -> None:
@@ -538,3 +540,160 @@ def classify_market(features: Mapping[str, Any]) -> dict:
         "reasons": reasons,
         "rules_version": RULES_VERSION,
     }
+
+
+FORMAL_CODES = (
+    PRIMARY_CODE,
+    "700050.TI", "700047.TI", "700035.TI", "700034.TI", "700038.TI", "700039.TI",
+    "700033.TI", "700032.TI", "700036.TI", "700037.TI", "700046.TI", "700048.TI", "700049.TI",
+    "883927.TI", "883958.TI", "883979.TI", "883900.TI",
+)
+
+
+def _parse_cli_date(value: str) -> dt.date:
+    try:
+        return dt.date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"日期格式错误，应为YYYY-MM-DD: {value}") from exc
+
+
+def _request_start(as_of: dt.date) -> str:
+    segment = segment_for_date(as_of)
+    if segment == "B":
+        return _BOUNDARY_START.isoformat()
+    return (as_of - dt.timedelta(days=120)).isoformat()
+
+
+def _no_market_result(as_of: dt.date, quality_status: str, message: str) -> dict:
+    return {
+        "as_of_date": as_of.isoformat(),
+        "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "segment_id": segment_for_date(as_of),
+        "quality_status": quality_status,
+        "rules_version": RULES_VERSION,
+        "source_versions": {},
+        "features": {},
+        "decision": {"direction": "无行情", "risk_mode": "中性", "reasons": [message], "rules_version": RULES_VERSION},
+    }
+
+
+def _resolve_as_of(requested: dt.date | None, client: IfindClient) -> tuple[dt.date, str | None]:
+    today = dt.date.today()
+    candidate = requested or today
+    if segment_for_date(candidate) is None:
+        return candidate, "2026-05-25为分析边界日，不参与分析"
+    calendar_start = candidate - dt.timedelta(days=120)
+    dates = client.fetch_calendar(calendar_start.isoformat(), candidate.isoformat())
+    if requested is not None:
+        if candidate.isoformat() not in dates:
+            return candidate, "指定日期不是已返回的交易日，未替换为其他日期"
+        return candidate, None
+    eligible = [date for date in dates if segment_for_date(date) is not None and date <= candidate.isoformat()]
+    if not eligible:
+        return candidate, "交易日历没有可用日期"
+    return _parse_cli_date(max(eligible)), None
+
+
+def _build_result(as_of: dt.date, client: IfindClient, include_realtime: bool = False) -> dict:
+    start = _request_start(as_of)
+    end = as_of.isoformat()
+    history = client.fetch_history(FORMAL_CODES, start, end, cps="1")
+    primary_rows = [row for row in history if row.get("instrument_code") == PRIMARY_CODE and str(row.get("trade_date", ""))[:10] == end]
+    if not primary_rows or _number(primary_rows[-1].get("close")) is None:
+        return _no_market_result(as_of, "无行情", "指定日期没有可用的收盘行情")
+    breadth = client.fetch_breadth(start, end)
+    features = compute_features(history, breadth)
+    quality = "有限可用" if features.get("breadth_quality_status") != "完整" else "完整"
+    result = {
+        "as_of_date": end,
+        "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "segment_id": features["segment_id"],
+        "quality_status": quality,
+        "rules_version": RULES_VERSION,
+        "source_versions": {"history_data": "iFinD REST v1", "data_pool/p00112": "candidate-A股"},
+        "features": features,
+        "decision": classify_market(features),
+    }
+    if include_realtime:
+        try:
+            result["realtime"] = client.fetch_realtime(PRIMARY_CODE)
+        except (RuntimeError, ValueError):
+            result["realtime"] = None
+    return result
+
+
+def _save_result(result: dict, data_root: Path = Path("data")) -> Path:
+    request_id = f"{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}-{uuid.uuid4().hex[:8]}"
+    folder = data_root / result["as_of_date"] / request_id
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / "result.json"
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _render_text(command: str, result: Mapping[str, Any]) -> str:
+    if result["quality_status"] in {"无行情", "边界日"}:
+        return f"数据日期：{result['as_of_date']}  分段：{result.get('segment_id') or '-'}  质量：{result['quality_status']}\n限制：{result['decision']['reasons'][0]}"
+    features = result["features"]
+    decision = result["decision"]
+    def fmt(value: Any) -> str:
+        return "缺失" if value is None else f"{value:.4f}" if isinstance(value, float) else str(value)
+    lines = [
+        f"数据日期：{result['as_of_date']}  分段：{result['segment_id']}  质量：{result['quality_status']}",
+        f"市场：{decision['direction']}  风险模式：{decision['risk_mode']}",
+        f"主基准收益：{fmt(features.get('market_return'))}  Ret5：{fmt(features.get('ret5'))}  Ret20：{fmt(features.get('ret20'))}  Ret60：{fmt(features.get('ret60'))}",
+        f"Spread：SIZE={fmt(features.get('size_spread'))}  RISK={fmt(features.get('risk_spread'))}  MOM={fmt(features.get('mom_spread'))}",
+        f"广度：上涨比例={fmt(features.get('up_ratio'))}  净广度={fmt(features.get('net_breadth'))}",
+        f"依据：{'；'.join(decision.get('reasons', []))}",
+    ]
+    if features.get("breadth_scope"):
+        lines.append(f"限制：广度范围标记为{features['breadth_scope']}，纯A沪深京语义仍待供应商最终确认")
+    if command == "forecast":
+        lines.insert(1, f"下一交易日倾向：{decision['direction']}（规则判断，不是概率预测）")
+    return "\n".join(lines)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="查询iFinD日频市场状态和规则型下一交易日判断")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    for command in ("status", "forecast"):
+        sub = subparsers.add_parser(command)
+        sub.add_argument("--date", metavar="YYYY-MM-DD")
+        sub.add_argument("--json", action="store_true", dest="as_json")
+        sub.add_argument("--no-save", action="store_true")
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        token = load_token()
+        client = IfindClient(token, evidence_dir=None if args.no_save else Path("data") / "evidence")
+        requested = _parse_cli_date(args.date) if args.date else None
+        as_of, resolution_message = _resolve_as_of(requested, client)
+        if resolution_message:
+            quality = "边界日" if segment_for_date(as_of) is None else "无行情"
+            result = _no_market_result(as_of, quality, resolution_message)
+            exit_code = 1
+        else:
+            result = _build_result(as_of, client, include_realtime=args.command == "status" and as_of == dt.date.today())
+            exit_code = 1 if result["quality_status"] == "无行情" else 0
+        if not args.no_save and result["quality_status"] not in {"无行情", "边界日"}:
+            _save_result(result)
+        if args.as_json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print(_render_text(args.command, result))
+        return exit_code
+    except (RuntimeError, ValueError, TypeError) as exc:
+        message = str(exc)
+        if args.as_json:
+            print(json.dumps({"quality_status": "失败", "error": message}, ensure_ascii=False))
+        else:
+            print(f"错误：{message}")
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

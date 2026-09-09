@@ -1,0 +1,33 @@
+# iFinD 大势分析终端 Agent
+
+这是一个只使用 Python 标准库的命令行工具，用 iFinD 日频数据回答两个问题：指定日期的市场状态，以及基于固定规则的下一交易日倾向。
+
+## 使用
+
+需要 Python 3.11 或更高版本，并在当前进程环境中设置令牌：
+
+```powershell
+$env:IFIND_ACCESS_TOKEN = "你的 iFinD token"
+python market_agent.py status
+python market_agent.py status --date 2026-09-08 --json
+python market_agent.py forecast --date 2026-09-08
+```
+
+`--json` 输出稳定的 `as_of_date`、`fetched_at`、`segment_id`、`quality_status`、`rules_version`、`source_versions`、`features` 和 `decision` 字段。默认把脱敏证据和结果保存到 `data/`，临时查看可加 `--no-save`。令牌不会写入结果、证据、日志或 Git。
+
+指定的周末、未来日期或没有收盘数据的日期会返回“无行情”，不会静默替换为旧日期。2026-05-25 是已记录的异常跳变边界：边界日不参与分析，A 段到 2026-05-22，B 段从 2026-05-26 开始，任何跨段窗口都会失败。
+
+## 输出含义
+
+方向标签是“偏强 / 震荡 / 偏弱”，风险标签是“Risk-On / 中性 / Risk-Off”。规则只使用主基准收益、Ret5/20/60、SIZE/RISK/MOM Spread 和候选广度；缺失信号不会被当成零。`vwap` 按接口定义记录为均价，但首版不拿它决定方向。结论是规则提示，不是投资建议，也不包含概率预测或交易执行。
+
+广度目前使用 `data_pool/p00112` 的 `p0=A股` 候选参数，结果会明确标记 `A_candidate_SH_SZ` 和“有限可用”，直到供应商确认沪深京纯 A 语义。接口请求、字段、复权口径和已知限制见 [iFinD API 文档](docs/ifind/API文档.md)，规则细节见 [规则说明](docs/agent/规则说明.md)。
+
+## 开发与验证
+
+```powershell
+python -m unittest discover -s tests -v
+python -m py_compile market_agent.py
+```
+
+首期采用单文件 CLI。SQLite（方案二）和计算服务/Web API（方案三）只保留在设计记录中，等到历史检索或多人访问成为实际需求再单独立项。
