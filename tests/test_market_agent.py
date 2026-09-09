@@ -13,6 +13,10 @@ from market_agent import (
 )
 from market_agent import (
     IfindClient,
+    fetch_breadth,
+    fetch_calendar,
+    fetch_history,
+    fetch_realtime,
     load_token_from_values,
     normalize_breadth,
     normalize_realtime,
@@ -173,6 +177,45 @@ class NormalizationTests(unittest.TestCase):
         row = normalize_realtime(payload)
         self.assertEqual(row["riseCount"], 2066)
         self.assertIsNone(row["suspensionCount"])
+
+
+class FetchContractTests(unittest.TestCase):
+    class FakeClient:
+        def __init__(self, payloads):
+            self.payloads = payloads
+            self.calls = []
+
+        def post(self, endpoint, body):
+            self.calls.append((endpoint, body))
+            return self.payloads[endpoint]
+
+    def test_fetch_history_wraps_req_body_and_cps(self):
+        fake = self.FakeClient({"history_data": {"errorcode": 0, "tables": []}})
+        self.assertEqual(fetch_history(["A.TI", "B.TI"], "2026-09-01", "2026-09-08", "1", fake), [])
+        endpoint, body = fake.calls[0]
+        self.assertEqual(endpoint, "history_data")
+        self.assertEqual(body["reqBody"]["codes"], "A.TI,B.TI")
+        self.assertEqual(body["reqBody"]["functionpara"], {"CPS": "1"})
+
+    def test_fetch_calendar_uses_confirmed_market_code(self):
+        fake = self.FakeClient({"get_trade_dates": {"errorcode": 0, "tables": {"time": ["2026-09-08"]}}})
+        self.assertEqual(fetch_calendar("2026-09-01", "2026-09-08", fake), ["2026-09-08"])
+        endpoint, body = fake.calls[0]
+        self.assertEqual(endpoint, "get_trade_dates")
+        self.assertEqual(body["marketcode"], "212001")
+
+    def test_fetch_breadth_uses_candidate_scope(self):
+        fake = self.FakeClient({"data_pool": {"errorcode": 0, "tables": []}})
+        self.assertEqual(fetch_breadth("2026-09-01", "2026-09-08", fake), [])
+        endpoint, body = fake.calls[0]
+        self.assertEqual(endpoint, "data_pool")
+        self.assertEqual(body["functionpara"]["p0"], "A股")
+
+    def test_fetch_realtime_maps_primary_index(self):
+        fake = self.FakeClient({"real_time_quotation": {"errorcode": 0, "tables": [{"table": {"latest": [101]}}]}})
+        row = fetch_realtime("883957.TI", fake)
+        self.assertEqual(row["instrument_code"], "883957.TI")
+        self.assertEqual(row["latest"], 101)
 
 
 if __name__ == "__main__":
