@@ -202,17 +202,18 @@ class IfindClient:
         if self.evidence_dir is None:
             return
         request_text = json.dumps(request_body, ensure_ascii=False, sort_keys=True)
+        safe_request = redact_text(request_text, self.token)
         safe_response = redact_text(response_text, self.token)
         request_id = f"{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}-{uuid.uuid4().hex[:8]}"
         folder = self.evidence_dir / f"{endpoint}-{request_id}"
         folder.mkdir(parents=True, exist_ok=True)
-        (folder / "request.json").write_text(request_text, encoding="utf-8")
+        (folder / "request.json").write_text(safe_request, encoding="utf-8")
         (folder / "response.json").write_text(safe_response, encoding="utf-8")
         metadata = {
             "endpoint": endpoint,
             "http_status": http_status,
             "errorcode": business_errorcode,
-            "request_sha256": self._sha256(request_text),
+            "request_sha256": self._sha256(safe_request),
             "response_sha256": self._sha256(safe_response),
             "response_type": "json" if safe_response.lstrip().startswith(("{", "[")) else "text",
         }

@@ -135,7 +135,7 @@ class SecurityTests(unittest.TestCase):
             "market_agent.urllib.request.build_opener", return_value=opener
         ):
             client = IfindClient("secret-token", Path(directory))
-            self.assertEqual(client.post("history_data", {"reqBody": {"codes": "A.TI"}})["errorcode"], 0)
+            self.assertEqual(client.post("history_data", {"reqBody": {"codes": "A.TI", "debug": "secret-token"}})["errorcode"], 0)
             self.assertEqual(opener.request.method, "POST")
             self.assertEqual(opener.request.full_url, "https://quantapi.51ifind.com/api/v1/history_data")
             self.assertEqual(opener.timeout, 25)
