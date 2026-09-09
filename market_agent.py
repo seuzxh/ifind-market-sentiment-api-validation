@@ -243,6 +243,9 @@ class IfindClient:
         except urllib.error.URLError as exc:
             self._write_evidence(endpoint, body, "", 0, None)
             raise RuntimeError("iFinD网络请求失败") from None
+        if status != 200:
+            self._write_evidence(endpoint, body, response_text, status, None)
+            raise RuntimeError(f"iFinD HTTP状态异常: {status}")
         try:
             payload = json.loads(response_text)
         except json.JSONDecodeError:
@@ -630,6 +633,8 @@ def _build_result(as_of: dt.date, client: IfindClient, include_realtime: bool = 
 
 def _save_result(result: dict, data_root: Path = Path("data")) -> Path:
     request_id = f"{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}-{uuid.uuid4().hex[:8]}"
+    result["request_id"] = request_id
+    result["revision"] = 1
     folder = data_root / result["as_of_date"] / request_id
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / "result.json"
