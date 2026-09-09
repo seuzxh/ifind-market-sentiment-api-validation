@@ -4,7 +4,7 @@
 
 ## 1. 状态与接入边界
 
-本轮已取得 REST 成功响应并完成第一轮结构检查；字段单位、复权和历史异常仍待数据验收。`history_data`、`get_trade_dates`、`data_pool`、`basic_data_service`、`smart_stock_picking` 均返回过 HTTP 200 / `errorcode=0`；无令牌的401基线也保留。
+本轮已取得 REST 成功响应并完成第一轮结构检查；字段单位、复权和历史异常仍待数据验收。`history_data`、`get_trade_dates`、`data_pool`、`basic_data_service`、`smart_stock_picking` 均返回过 HTTP 200 / `errorcode=0`；无令牌的401基线也保留。`real_time_quotation`和`high_frequency`已加入待执行复验。
 
 | 能力 | HTTP端点，均以 `/api/v1/` 开头 | 本轮可证明的范围 |
 |---|---|---|

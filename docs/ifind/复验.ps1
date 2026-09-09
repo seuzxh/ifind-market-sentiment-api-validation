@@ -71,7 +71,7 @@ $results = [Collections.Generic.List[object]]::new()
 $fatal = $false
 try {
     foreach ($test in $selected) {
-        if ($test.endpoint -cnotin @('history_data', 'get_trade_dates', 'smart_stock_picking', 'basic_data_service', 'data_pool')) {
+        if ($test.endpoint -cnotin @('history_data', 'get_trade_dates', 'smart_stock_picking', 'basic_data_service', 'data_pool', 'real_time_quotation', 'high_frequency')) {
             throw '请求端点不在允许列表。'
         }
         if ($results.Count -gt 0) { Start-Sleep -Seconds 1 }
