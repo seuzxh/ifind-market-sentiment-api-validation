@@ -8,6 +8,14 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Mapping, Sequence
+import hashlib
+import json
+import os
+from pathlib import Path
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
 from typing import Any
 
 
@@ -124,3 +132,260 @@ def validate_same_segment(dates: list[str]) -> None:
     segments = {segment_for_date(date) for date in dates}
     if None in segments or len(segments) > 1:
         raise ValueError("日期跨越2026-05-25分段边界或包含边界日")
+
+
+def redact_text(text: str, token: str = "") -> str:
+    """从待保存文本中移除令牌及其 URL 编码形式。"""
+
+    result = str(text)
+    if token:
+        result = result.replace(token, "<REDACTED>")
+        result = result.replace(urllib.parse.quote(token, safe=""), "<REDACTED>")
+    return result
+
+
+def load_token_from_values(process_value: str, user_value: str) -> str:
+    """按进程环境优先、用户环境其次读取令牌。"""
+
+    token = process_value or user_value
+    if not token or not token.strip():
+        raise RuntimeError("缺少IFIND_ACCESS_TOKEN，未发送请求")
+    return token.strip()
+
+
+def load_token() -> str:
+    """从当前进程环境读取令牌；不在模块导入时调用。"""
+
+    return load_token_from_values(os.environ.get("IFIND_ACCESS_TOKEN", ""), "")
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: N802
+        raise urllib.error.HTTPError(req.full_url, code, "禁止自动重定向", headers, fp)
+
+
+class IfindClient:
+    """iFinD REST 客户端，只允许首期使用的固定端点。"""
+
+    BASE_URL = "https://quantapi.51ifind.com/api/v1/"
+    ALLOWED_ENDPOINTS = frozenset({
+        "history_data",
+        "get_trade_dates",
+        "data_pool",
+        "basic_data_service",
+        "smart_stock_picking",
+        "real_time_quotation",
+        "high_frequency",
+    })
+
+    def __init__(self, token: str, evidence_dir: Path | None = None):
+        if not token or not token.strip():
+            raise RuntimeError("缺少IFIND_ACCESS_TOKEN，未发送请求")
+        self.token = token.strip()
+        self.evidence_dir = Path(evidence_dir) if evidence_dir else None
+        self._opener = urllib.request.build_opener(_NoRedirectHandler())
+
+    @staticmethod
+    def _sha256(text: str) -> str:
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    def _write_evidence(
+        self,
+        endpoint: str,
+        request_body: dict,
+        response_text: str,
+        http_status: int,
+        business_errorcode: Any,
+    ) -> None:
+        if self.evidence_dir is None:
+            return
+        request_text = json.dumps(request_body, ensure_ascii=False, sort_keys=True)
+        safe_response = redact_text(response_text, self.token)
+        request_id = f"{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}-{uuid.uuid4().hex[:8]}"
+        folder = self.evidence_dir / f"{endpoint}-{request_id}"
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "request.json").write_text(request_text, encoding="utf-8")
+        (folder / "response.json").write_text(safe_response, encoding="utf-8")
+        metadata = {
+            "endpoint": endpoint,
+            "http_status": http_status,
+            "errorcode": business_errorcode,
+            "request_sha256": self._sha256(request_text),
+            "response_sha256": self._sha256(safe_response),
+            "response_type": "json" if safe_response.lstrip().startswith(("{", "[")) else "text",
+        }
+        (folder / "metadata.json").write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+
+    def post(self, endpoint: str, body: dict) -> dict:
+        """向固定 iFinD 端点发送 JSON POST，并显式处理错误。"""
+
+        if endpoint not in self.ALLOWED_ENDPOINTS:
+            raise ValueError(f"不允许访问的iFinD端点: {endpoint}")
+        url = f"{self.BASE_URL}{endpoint}"
+        request_bytes = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        request = urllib.request.Request(
+            url,
+            data=request_bytes,
+            headers={"Content-Type": "application/json", "access_token": self.token},
+            method="POST",
+        )
+        try:
+            with self._opener.open(request, timeout=25) as response:
+                status = response.getcode()
+                response_text = response.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            self._write_evidence(endpoint, body, "", exc.code, None)
+            raise RuntimeError(f"iFinD HTTP错误: {exc.code}") from None
+        except urllib.error.URLError as exc:
+            self._write_evidence(endpoint, body, "", 0, None)
+            raise RuntimeError("iFinD网络请求失败") from None
+        try:
+            payload = json.loads(response_text)
+        except json.JSONDecodeError:
+            self._write_evidence(endpoint, body, response_text, status, None)
+            raise ValueError("iFinD响应不是合法JSON") from None
+        self._write_evidence(endpoint, body, response_text, status, payload.get("errorcode"))
+        _ok(payload)
+        return payload
+
+    def fetch_history(
+        self, codes: str | Sequence[str], start: str, end: str, cps: str | None = None
+    ) -> list[dict]:
+        return fetch_history(codes, start, end, cps=cps, client=self)
+
+    def fetch_calendar(self, start: str, end: str) -> list[str]:
+        return fetch_calendar(start, end, client=self)
+
+    def fetch_breadth(self, start: str, end: str) -> list[dict]:
+        return fetch_breadth(start, end, client=self)
+
+    def fetch_realtime(self, code: str = "883957.TI") -> dict:
+        return fetch_realtime(code, client=self)
+
+
+def _get_client(client: IfindClient | None) -> IfindClient:
+    return client if client is not None else IfindClient(load_token())
+
+
+def _join_codes(codes: str | Sequence[str]) -> str:
+    return codes if isinstance(codes, str) else ",".join(codes)
+
+
+def fetch_history(
+    codes: str | Sequence[str], start: str, end: str, cps: str | None = None,
+    client: IfindClient | None = None,
+) -> list[dict]:
+    req_body: dict[str, Any] = {
+        "codes": _join_codes(codes),
+        "startdate": start,
+        "enddate": end,
+        "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn",
+    }
+    if cps is not None:
+        req_body["functionpara"] = {"CPS": str(cps)}
+    payload = _get_client(client).post("history_data", {"reqBody": req_body})
+    return parse_history_response(payload)
+
+
+def fetch_calendar(start: str, end: str, client: IfindClient | None = None) -> list[str]:
+    body = {
+        "marketcode": "212001",
+        "functionpara": {"mode": "1", "dateType": "0", "period": "D", "dateFormat": "0"},
+        "startdate": start,
+        "enddate": end,
+    }
+    return parse_calendar_response(_get_client(client).post("get_trade_dates", body))
+
+
+def _rows_from_table_payload(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
+    tables = payload.get("tables", [])
+    if isinstance(tables, Mapping):
+        tables = [tables]
+    rows: list[dict[str, Any]] = []
+    for table in tables or []:
+        if not isinstance(table, Mapping):
+            continue
+        values = table.get("table", table)
+        if not isinstance(values, Mapping):
+            continue
+        arrays = {
+            key: value for key, value in values.items()
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes))
+        }
+        if not arrays:
+            rows.append(dict(values))
+            continue
+        size = max((len(value) for value in arrays.values()), default=0)
+        for index in range(size):
+            rows.append({key: (value[index] if index < len(value) else None) for key, value in arrays.items()})
+    return rows
+
+
+def _number(value: Any) -> float | int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def normalize_breadth(payload: dict) -> list[dict]:
+    """标准化 p00112，保留候选范围和缺失质量信息。"""
+
+    _ok(payload)
+    result: list[dict] = []
+    for raw in _rows_from_table_payload(payload):
+        up = _number(raw.get("p00112_f002"))
+        flat = _number(raw.get("p00112_f003"))
+        down = _number(raw.get("p00112_f004"))
+        total = sum(value for value in (up, flat, down) if value is not None)
+        complete = all(value is not None for value in (up, flat, down)) and total > 0
+        row = {
+            "trade_date": str(raw.get("p00112_f001", "")).replace("/", "-")[:10],
+            "up": up,
+            "flat": flat,
+            "down": down,
+            "scope": "A_candidate_SH_SZ",
+            "quality_status": "有限可用" if complete else "缺失",
+            "raw": dict(raw),
+        }
+        row["up_ratio"] = up / total if complete else None
+        row["down_ratio"] = down / total if complete else None
+        row["net_breadth"] = (up - down) / total if complete else None
+        result.append(row)
+    return result
+
+
+def normalize_realtime(payload: dict, code: str = "883957.TI") -> dict:
+    """标准化实时行情快照；接口返回的 null 继续保持 None。"""
+
+    _ok(payload)
+    rows = _rows_from_table_payload(payload)
+    raw = rows[0] if rows else {}
+    normalized = dict(raw)
+    normalized.update({"instrument_code": code, "scope": code, "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat()})
+    normalized["raw"] = raw
+    return normalized
+
+
+def fetch_breadth(start: str, end: str, client: IfindClient | None = None) -> list[dict]:
+    body = {
+        "reportname": "p00112",
+        "functionpara": {"sdate": start.replace("-", ""), "edate": end.replace("-", ""), "p0": "A股"},
+        "outputpara": ",".join(f"p00112_f{i:03d}" for i in range(1, 15)),
+    }
+    return normalize_breadth(_get_client(client).post("data_pool", body))
+
+
+def fetch_realtime(code: str = "883957.TI", client: IfindClient | None = None) -> dict:
+    indicators = (
+        "riseCount,fallCount,upLimitCount,downLimitCount,suspensionCount,tradeDate,tradeTime,"
+        "preClose,open,high,low,latest,latestAmount,latestVolume,volume,amount,changeRatio,change,swing"
+    )
+    return normalize_realtime(
+        _get_client(client).post("real_time_quotation", {"codes": code, "indicators": indicators}),
+        code=code,
+    )

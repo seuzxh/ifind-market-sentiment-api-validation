@@ -1,11 +1,22 @@
 import datetime as dt
+import json
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from market_agent import (
     parse_calendar_response,
     parse_history_response,
     segment_for_date,
     validate_same_segment,
+)
+from market_agent import (
+    IfindClient,
+    load_token_from_values,
+    normalize_breadth,
+    normalize_realtime,
+    redact_text,
 )
 
 
@@ -77,6 +88,91 @@ class ContractTests(unittest.TestCase):
 
     def test_empty_window_is_allowed(self):
         validate_same_segment([])
+
+
+class SecurityTests(unittest.TestCase):
+    def test_redact_removes_token(self):
+        self.assertNotIn("secret-token", redact_text("x secret-token y", "secret-token"))
+
+    def test_empty_token_fails_before_request(self):
+        with self.assertRaises(RuntimeError):
+            load_token_from_values("", "")
+
+    def test_client_posts_fixed_https_request_and_redacts_evidence(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def getcode(self):
+                return 200
+
+            def read(self):
+                return json.dumps({"errorcode": 0, "tables": []}).encode()
+
+        class FakeOpener:
+            def __init__(self):
+                self.request = None
+
+            def open(self, request, timeout):
+                self.request = request
+                self.timeout = timeout
+                return FakeResponse()
+
+        opener = FakeOpener()
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "market_agent.urllib.request.build_opener", return_value=opener
+        ):
+            client = IfindClient("secret-token", Path(directory))
+            self.assertEqual(client.post("history_data", {"reqBody": {"codes": "A.TI"}})["errorcode"], 0)
+            self.assertEqual(opener.request.method, "POST")
+            self.assertEqual(opener.request.full_url, "https://quantapi.51ifind.com/api/v1/history_data")
+            self.assertEqual(opener.timeout, 25)
+            self.assertEqual(opener.request.get_header("Access_token"), "secret-token")
+            saved = "".join(path.read_text(encoding="utf-8") for path in Path(directory).rglob("*" ) if path.is_file())
+            self.assertNotIn("secret-token", saved)
+
+    def test_unknown_endpoint_is_rejected(self):
+        with patch("market_agent.urllib.request.build_opener"):
+            client = IfindClient("secret-token")
+        with self.assertRaises(ValueError):
+            client.post("http://example.com", {})
+
+
+class NormalizationTests(unittest.TestCase):
+    def test_breadth_preserves_null_and_percent_units(self):
+        payload = {
+            "errorcode": 0,
+            "tables": [{"table": {
+                "p00112_f001": ["2026/09/08"],
+                "p00112_f002": [3257],
+                "p00112_f003": [91],
+                "p00112_f004": [1859],
+            }}],
+        }
+        row = normalize_breadth(payload)[0]
+        self.assertEqual(row["up"], 3257)
+        self.assertEqual(row["flat"], 91)
+        self.assertAlmostEqual(row["up_ratio"], 3257 / (3257 + 91 + 1859))
+        self.assertEqual(row["scope"], "A_candidate_SH_SZ")
+
+    def test_breadth_missing_values_are_not_zero(self):
+        payload = {"errorcode": 0, "tables": [{"table": {
+            "p00112_f001": ["2026/09/08"], "p00112_f002": [1], "p00112_f003": [None], "p00112_f004": [2]
+        }}]}
+        row = normalize_breadth(payload)[0]
+        self.assertIsNone(row["flat"])
+        self.assertIsNone(row["net_breadth"])
+
+    def test_realtime_keeps_null(self):
+        payload = {"errorcode": 0, "tables": [{"table": {
+            "riseCount": [2066], "fallCount": [3304], "suspensionCount": [None]
+        }}]}
+        row = normalize_realtime(payload)
+        self.assertEqual(row["riseCount"], 2066)
+        self.assertIsNone(row["suspensionCount"])
 
 
 if __name__ == "__main__":

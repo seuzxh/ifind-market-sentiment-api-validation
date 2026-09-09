@@ -1,2 +1,7 @@
 # Local iFinD evidence may contain provider responses and is intentionally not published.
 docs/ifind/evidence/
+
+# Agent运行结果、原始响应和本地缓存不发布到仓库。
+data/
+__pycache__/
+tests/__pycache__/
