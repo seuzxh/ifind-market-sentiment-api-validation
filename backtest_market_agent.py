@@ -64,7 +64,10 @@ def build_signal_rows(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]
         date = dates[index]
         next_date = dates[index + 1]
         segment = segment_for_date(date)
-        if segment is None or segment != segment_for_date(next_date):
+        if segment is None or any(
+            segment_for_date(window_date) != segment
+            for window_date in dates[index - 20:index + 2]
+        ):
             continue
         current = primary[date]
         current_close = current.get("close")
@@ -105,12 +108,18 @@ POLICIES: dict[str, Callable[[Mapping[str, Any]], int]] = {
 
 
 def _metrics(samples: Sequence[Mapping[str, Any]], policy: Callable[[Mapping[str, Any]], int]) -> dict[str, Any]:
+    segments = {sample["segment_id"] for sample in samples}
+    multiple_segments = len(segments) > 1
+    previous_segment = None
     equity = 1.0
     peak = 1.0
     max_drawdown = 0.0
     drawdown_date = None
     active: list[Mapping[str, Any]] = []
     for sample in samples:
+        if sample["segment_id"] != previous_segment:
+            equity = peak = 1.0
+            previous_segment = sample["segment_id"]
         position = policy(sample)
         realized = position * float(sample["next_return"])
         equity *= 1 + realized
@@ -127,9 +136,10 @@ def _metrics(samples: Sequence[Mapping[str, Any]], policy: Callable[[Mapping[str
         "observations": len(samples),
         "active_observations": len(active),
         "exposure": len(active) / len(samples) if samples else 0,
-        "total_return": equity - 1,
-        "max_drawdown": max_drawdown,
-        "max_drawdown_date": drawdown_date,
+        "total_return": None if multiple_segments else equity - 1,
+        "max_drawdown": None if multiple_segments else max_drawdown,
+        "max_drawdown_date": None if multiple_segments else drawdown_date,
+        "equity_scope": "分段独立统计，汇总不计算净值" if multiple_segments else "单段净值",
         "hit_rate": hit_rate,
         "worst_active_return": min((item["realized"] for item in active), default=None),
     }
@@ -156,7 +166,10 @@ def run_backtest(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     for direction in ("偏强", "偏弱"):
         selected = [sample for sample in samples if sample["direction"] == direction]
         expected_positive = direction == "偏强"
-        hits = [sample for sample in selected if (sample["next_return"] > 0) == expected_positive]
+        hits = [
+            sample for sample in selected
+            if (sample["next_return"] > 0 if expected_positive else sample["next_return"] < 0)
+        ]
         signal_accuracy[direction] = {
             "observations": len(selected),
             "hit_rate": len(hits) / len(selected) if selected else None,
@@ -168,7 +181,7 @@ def run_backtest(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         "sample_start": samples[0]["date"] if samples else None,
         "sample_end": samples[-1]["date"] if samples else None,
         "observations": len(samples),
-        "boundary_rule": "2026-05-25 excluded; A<=2026-05-22, B>=2026-05-26",
+        "boundary_rule": "2026-05-25 excluded; A<=2026-05-22, B>=2026-05-26; 20日窗口和预测日须在同段，净值分段计算",
         "signal_accuracy": signal_accuracy,
         "policies": policies,
         "recommended_policy": "conservative_long_flat",
@@ -188,8 +201,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         print(f"样本：{result['sample_start']} 至 {result['sample_end']}，有效观察 {result['observations']} 条")
         for name, values in result["policies"].items():
-            metrics = values["all"]
-            print(f"{name}: 收益={metrics['total_return']:.2%} 最大回撤={metrics['max_drawdown']:.2%} 命中率={metrics['hit_rate']:.2%}")
+            for segment, metrics in values["segments"].items():
+                if not metrics["observations"]:
+                    continue
+                hit_rate = f"{metrics['hit_rate']:.2%}" if metrics["hit_rate"] is not None else "无参与样本"
+                print(f"{name} / {segment}段: 收益={metrics['total_return']:.2%} 最大回撤={metrics['max_drawdown']:.2%} 命中率={hit_rate}")
         print(f"建议策略：{result['recommended_policy']}（{result['recommendation_reason']}）")
     return 0
 

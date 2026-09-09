@@ -1,0 +1,173 @@
+{
+  "rules_version": "rules-v1",
+  "sample_start": "2025-02-07",
+  "sample_end": "2026-09-07",
+  "observations": 366,
+  "boundary_rule": "2026-05-25 excluded; A<=2026-05-22, B>=2026-05-26; 20日窗口和预测日须在同段，净值分段计算",
+  "signal_accuracy": {
+    "偏强": {
+      "observations": 127,
+      "hit_rate": 0.5669291338582677,
+      "average_next_return": 0.0013854262344594889,
+      "worst_next_return": -0.023723942571754364
+    },
+    "偏弱": {
+      "observations": 40,
+      "hit_rate": 0.3,
+      "average_next_return": 0.00017326907267773418,
+      "worst_next_return": -0.1212438801837944
+    }
+  },
+  "policies": {
+    "current_long_flat": {
+      "all": {
+        "observations": 366,
+        "active_observations": 127,
+        "exposure": 0.3469945355191257,
+        "total_return": null,
+        "max_drawdown": null,
+        "max_drawdown_date": null,
+        "equity_scope": "分段独立统计，汇总不计算净值",
+        "hit_rate": 0.5669291338582677,
+        "worst_active_return": -0.023723942571754364
+      },
+      "segments": {
+        "A": {
+          "observations": 312,
+          "active_observations": 117,
+          "exposure": 0.375,
+          "total_return": 0.15171352350575007,
+          "max_drawdown": -0.042372307492705374,
+          "max_drawdown_date": "2026-04-22",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.5641025641025641,
+          "worst_active_return": -0.023723942571754364
+        },
+        "B": {
+          "observations": 54,
+          "active_observations": 10,
+          "exposure": 0.18518518518518517,
+          "total_return": 0.029456078983411516,
+          "max_drawdown": -0.014856257525260208,
+          "max_drawdown_date": "2026-08-12",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.6,
+          "worst_active_return": -0.010562641582202992
+        }
+      }
+    },
+    "current_long_short": {
+      "all": {
+        "observations": 366,
+        "active_observations": 167,
+        "exposure": 0.4562841530054645,
+        "total_return": null,
+        "max_drawdown": null,
+        "max_drawdown_date": null,
+        "equity_scope": "分段独立统计，汇总不计算净值",
+        "hit_rate": 0.5029940119760479,
+        "worst_active_return": -0.03376500307304098
+      },
+      "segments": {
+        "A": {
+          "observations": 312,
+          "active_observations": 143,
+          "exposure": 0.4583333333333333,
+          "total_return": 0.14299175333687963,
+          "max_drawdown": -0.11792684333847459,
+          "max_drawdown_date": "2025-12-09",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.5034965034965035,
+          "worst_active_return": -0.03376500307304098
+        },
+        "B": {
+          "observations": 54,
+          "active_observations": 24,
+          "exposure": 0.4444444444444444,
+          "total_return": 0.01640992181932943,
+          "max_drawdown": -0.09992639790243929,
+          "max_drawdown_date": "2026-08-12",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.5,
+          "worst_active_return": -0.03032598724071245
+        }
+      }
+    },
+    "conservative_long_flat": {
+      "all": {
+        "observations": 366,
+        "active_observations": 86,
+        "exposure": 0.23497267759562843,
+        "total_return": null,
+        "max_drawdown": null,
+        "max_drawdown_date": null,
+        "equity_scope": "分段独立统计，汇总不计算净值",
+        "hit_rate": 0.5813953488372093,
+        "worst_active_return": -0.023723942571754364
+      },
+      "segments": {
+        "A": {
+          "observations": 312,
+          "active_observations": 80,
+          "exposure": 0.2564102564102564,
+          "total_return": 0.10634999530223044,
+          "max_drawdown": -0.03391249563460286,
+          "max_drawdown_date": "2025-02-17",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.575,
+          "worst_active_return": -0.023723942571754364
+        },
+        "B": {
+          "observations": 54,
+          "active_observations": 6,
+          "exposure": 0.1111111111111111,
+          "total_return": 0.020825944563687138,
+          "max_drawdown": -0.010562641582202992,
+          "max_drawdown_date": "2026-08-12",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.6666666666666666,
+          "worst_active_return": -0.010562641582202992
+        }
+      }
+    },
+    "buy_and_hold_reference": {
+      "all": {
+        "observations": 366,
+        "active_observations": 366,
+        "exposure": 1.0,
+        "total_return": null,
+        "max_drawdown": null,
+        "max_drawdown_date": null,
+        "equity_scope": "分段独立统计，汇总不计算净值",
+        "hit_rate": 0.5819672131147541,
+        "worst_active_return": -0.1212438801837944
+      },
+      "segments": {
+        "A": {
+          "observations": 312,
+          "active_observations": 312,
+          "exposure": 1.0,
+          "total_return": 0.4670671803566715,
+          "max_drawdown": -0.1712224806627789,
+          "max_drawdown_date": "2025-04-03",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.5865384615384616,
+          "worst_active_return": -0.1212438801837944
+        },
+        "B": {
+          "observations": 54,
+          "active_observations": 54,
+          "exposure": 1.0,
+          "total_return": -0.009134538382632673,
+          "max_drawdown": -0.13723214623554725,
+          "max_drawdown_date": "2026-07-23",
+          "equity_scope": "单段净值",
+          "hit_rate": 0.5555555555555556,
+          "worst_active_return": -0.045589759053268786
+        }
+      }
+    }
+  },
+  "recommended_policy": "conservative_long_flat",
+  "recommendation_reason": "偏弱信号不做空；偏强且Risk-Off时空仓，以降低回撤。"
+}

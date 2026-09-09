@@ -1,0 +1,569 @@
+{
+  "experiment_version": "probability-v1",
+  "target": "下一交易日上涨（收益>0），平盘计非上涨",
+  "min_train": 40,
+  "shrinkage": 10,
+  "segments": {
+    "A": {
+      "sample_count": 312,
+      "sample_start": "2025-02-07",
+      "test_start": "2025-12-25",
+      "selected_on_development": "direction",
+      "development": {
+        "base_rate": {
+          "observations": 178,
+          "accuracy": 0.6235955056179775,
+          "brier": 0.23798599954203126,
+          "always_up_accuracy": 0.6235955056179775,
+          "high_probability_count": 167,
+          "high_probability_coverage": 0.9382022471910112,
+          "high_probability_hit_rate": 0.5988023952095808,
+          "high_probability_worst_return": -0.037441203837220494,
+          "high_probability_exposure": {
+            "observations": 178,
+            "active_observations": 167,
+            "exposure": 0.9382022471910112,
+            "total_return": 0.2780657447205588,
+            "max_drawdown": -0.069076880883015,
+            "max_drawdown_date": "2025-11-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.5988023952095808,
+            "worst_active_return": -0.037441203837220494
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 11,
+              "mean_probability": 0.5822693246404206,
+              "actual_up_rate": 1.0
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 167,
+              "mean_probability": 0.6196986716831245,
+              "actual_up_rate": 0.5988023952095808
+            }
+          ]
+        },
+        "direction": {
+          "observations": 178,
+          "accuracy": 0.6235955056179775,
+          "brier": 0.23659742338963768,
+          "always_up_accuracy": 0.6235955056179775,
+          "high_probability_count": 110,
+          "high_probability_coverage": 0.6179775280898876,
+          "high_probability_hit_rate": 0.6272727272727273,
+          "high_probability_worst_return": -0.037441203837220494,
+          "high_probability_exposure": {
+            "observations": 178,
+            "active_observations": 110,
+            "exposure": 0.6179775280898876,
+            "total_return": 0.25671018889824393,
+            "max_drawdown": -0.05609053651247209,
+            "max_drawdown_date": "2025-11-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.6272727272727273,
+            "worst_active_return": -0.037441203837220494
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 68,
+              "mean_probability": 0.5742584059313217,
+              "actual_up_rate": 0.6176470588235294
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 102,
+              "mean_probability": 0.6413842273270121,
+              "actual_up_rate": 0.6176470588235294
+            },
+            {
+              "range": [
+                0.7,
+                1
+              ],
+              "observations": 8,
+              "mean_probability": 0.7301497290087224,
+              "actual_up_rate": 0.75
+            }
+          ]
+        },
+        "risk_mode": {
+          "observations": 178,
+          "accuracy": 0.6179775280898876,
+          "brier": 0.24061014400027103,
+          "always_up_accuracy": 0.6235955056179775,
+          "high_probability_count": 137,
+          "high_probability_coverage": 0.7696629213483146,
+          "high_probability_hit_rate": 0.6058394160583942,
+          "high_probability_worst_return": -0.037441203837220494,
+          "high_probability_exposure": {
+            "observations": 178,
+            "active_observations": 137,
+            "exposure": 0.7696629213483146,
+            "total_return": 0.3073502890642328,
+            "max_drawdown": -0.0909381471650147,
+            "max_drawdown_date": "2025-11-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.6058394160583942,
+            "worst_active_return": -0.037441203837220494
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.4,
+                0.5
+              ],
+              "observations": 1,
+              "mean_probability": 0.47985347985347987,
+              "actual_up_rate": 1.0
+            },
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 40,
+              "mean_probability": 0.575549021041202,
+              "actual_up_rate": 0.675
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 137,
+              "mean_probability": 0.6341271220911987,
+              "actual_up_rate": 0.6058394160583942
+            }
+          ]
+        },
+        "daily_sign": {
+          "observations": 178,
+          "accuracy": 0.6235955056179775,
+          "brier": 0.2370120304878328,
+          "always_up_accuracy": 0.6235955056179775,
+          "high_probability_count": 112,
+          "high_probability_coverage": 0.6292134831460674,
+          "high_probability_hit_rate": 0.6071428571428571,
+          "high_probability_worst_return": -0.037441203837220494,
+          "high_probability_exposure": {
+            "observations": 178,
+            "active_observations": 112,
+            "exposure": 0.6292134831460674,
+            "total_return": 0.1633417525714933,
+            "max_drawdown": -0.05609053651247209,
+            "max_drawdown_date": "2025-11-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.6071428571428571,
+            "worst_active_return": -0.037441203837220494
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 66,
+              "mean_probability": 0.5845079060827973,
+              "actual_up_rate": 0.6515151515151515
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 110,
+              "mean_probability": 0.6407086863319835,
+              "actual_up_rate": 0.6090909090909091
+            },
+            {
+              "range": [
+                0.7,
+                1
+              ],
+              "observations": 2,
+              "mean_probability": 0.7041598145053622,
+              "actual_up_rate": 0.5
+            }
+          ]
+        }
+      },
+      "test": {
+        "base_rate": {
+          "observations": 94,
+          "accuracy": 0.5319148936170213,
+          "brier": 0.2541169747900467,
+          "always_up_accuracy": 0.5319148936170213,
+          "high_probability_count": 25,
+          "high_probability_coverage": 0.26595744680851063,
+          "high_probability_hit_rate": 0.48,
+          "high_probability_worst_return": -0.011300516209645117,
+          "high_probability_exposure": {
+            "observations": 94,
+            "active_observations": 25,
+            "exposure": 0.26595744680851063,
+            "total_return": 0.07454720948691662,
+            "max_drawdown": -0.028133692119698406,
+            "max_drawdown_date": "2026-02-09",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.48,
+            "worst_active_return": -0.011300516209645117
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 69,
+              "mean_probability": 0.58772031162585,
+              "actual_up_rate": 0.5507246376811594
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 25,
+              "mean_probability": 0.6069755768749806,
+              "actual_up_rate": 0.48
+            }
+          ]
+        },
+        "direction": {
+          "observations": 94,
+          "accuracy": 0.5319148936170213,
+          "brier": 0.2549449383548296,
+          "always_up_accuracy": 0.5319148936170213,
+          "high_probability_count": 19,
+          "high_probability_coverage": 0.20212765957446807,
+          "high_probability_hit_rate": 0.5263157894736842,
+          "high_probability_worst_return": -0.05145022374352304,
+          "high_probability_exposure": {
+            "observations": 94,
+            "active_observations": 19,
+            "exposure": 0.20212765957446807,
+            "total_return": 0.02647620805272055,
+            "max_drawdown": -0.07286851205513678,
+            "max_drawdown_date": "2026-03-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.5263157894736842,
+            "worst_active_return": -0.05145022374352304
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 75,
+              "mean_probability": 0.5759446684259145,
+              "actual_up_rate": 0.5333333333333333
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 13,
+              "mean_probability": 0.6274785098385381,
+              "actual_up_rate": 0.5384615384615384
+            },
+            {
+              "range": [
+                0.7,
+                1
+              ],
+              "observations": 6,
+              "mean_probability": 0.7182908635090381,
+              "actual_up_rate": 0.5
+            }
+          ]
+        },
+        "risk_mode": {
+          "observations": 94,
+          "accuracy": 0.5319148936170213,
+          "brier": 0.254835400560184,
+          "always_up_accuracy": 0.5319148936170213,
+          "high_probability_count": 43,
+          "high_probability_coverage": 0.4574468085106383,
+          "high_probability_hit_rate": 0.46511627906976744,
+          "high_probability_worst_return": -0.05145022374352304,
+          "high_probability_exposure": {
+            "observations": 94,
+            "active_observations": 43,
+            "exposure": 0.4574468085106383,
+            "total_return": -0.09473811329910908,
+            "max_drawdown": -0.15110697880366164,
+            "max_drawdown_date": "2026-05-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.46511627906976744,
+            "worst_active_return": -0.05145022374352304
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 51,
+              "mean_probability": 0.5838240391597926,
+              "actual_up_rate": 0.5882352941176471
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 43,
+              "mean_probability": 0.6100578686855279,
+              "actual_up_rate": 0.46511627906976744
+            }
+          ]
+        },
+        "daily_sign": {
+          "observations": 94,
+          "accuracy": 0.5319148936170213,
+          "brier": 0.25758924933927096,
+          "always_up_accuracy": 0.5319148936170213,
+          "high_probability_count": 44,
+          "high_probability_coverage": 0.46808510638297873,
+          "high_probability_hit_rate": 0.5227272727272727,
+          "high_probability_worst_return": -0.05145022374352304,
+          "high_probability_exposure": {
+            "observations": 94,
+            "active_observations": 44,
+            "exposure": 0.46808510638297873,
+            "total_return": 0.008035381739998737,
+            "max_drawdown": -0.09665987434756862,
+            "max_drawdown_date": "2026-03-20",
+            "equity_scope": "单段净值",
+            "hit_rate": 0.5227272727272727,
+            "worst_active_return": -0.05145022374352304
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 50,
+              "mean_probability": 0.5720315589949173,
+              "actual_up_rate": 0.54
+            },
+            {
+              "range": [
+                0.6,
+                0.7
+              ],
+              "observations": 44,
+              "mean_probability": 0.6239778306161544,
+              "actual_up_rate": 0.5227272727272727
+            }
+          ]
+        }
+      },
+      "candidate_passed_screen": false,
+      "selection_status": "仅依据开发期Brier选择"
+    },
+    "B": {
+      "sample_count": 54,
+      "sample_start": "2026-06-24",
+      "test_start": "2026-08-19",
+      "selected_on_development": "base_rate",
+      "development": {
+        "base_rate": {
+          "observations": 0,
+          "accuracy": null,
+          "brier": null
+        },
+        "direction": {
+          "observations": 0,
+          "accuracy": null,
+          "brier": null
+        },
+        "risk_mode": {
+          "observations": 0,
+          "accuracy": null,
+          "brier": null
+        },
+        "daily_sign": {
+          "observations": 0,
+          "accuracy": null,
+          "brier": null
+        }
+      },
+      "test": {
+        "base_rate": {
+          "observations": 14,
+          "accuracy": 0.6428571428571429,
+          "brier": 0.24520730872711113,
+          "always_up_accuracy": 0.6428571428571429,
+          "high_probability_count": 0,
+          "high_probability_coverage": 0.0,
+          "high_probability_hit_rate": null,
+          "high_probability_worst_return": null,
+          "high_probability_exposure": {
+            "observations": 14,
+            "active_observations": 0,
+            "exposure": 0.0,
+            "total_return": 0.0,
+            "max_drawdown": 0.0,
+            "max_drawdown_date": null,
+            "equity_scope": "单段净值",
+            "hit_rate": null,
+            "worst_active_return": null
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 14,
+              "mean_probability": 0.5396324199960653,
+              "actual_up_rate": 0.6428571428571429
+            }
+          ]
+        },
+        "direction": {
+          "observations": 14,
+          "accuracy": 0.5,
+          "brier": 0.2576551403072292,
+          "always_up_accuracy": 0.6428571428571429,
+          "high_probability_count": 0,
+          "high_probability_coverage": 0.0,
+          "high_probability_hit_rate": null,
+          "high_probability_worst_return": null,
+          "high_probability_exposure": {
+            "observations": 14,
+            "active_observations": 0,
+            "exposure": 0.0,
+            "total_return": 0.0,
+            "max_drawdown": 0.0,
+            "max_drawdown_date": null,
+            "equity_scope": "单段净值",
+            "hit_rate": null,
+            "worst_active_return": null
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.4,
+                0.5
+              ],
+              "observations": 2,
+              "mean_probability": 0.4729061127997298,
+              "actual_up_rate": 1.0
+            },
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 12,
+              "mean_probability": 0.544981898115324,
+              "actual_up_rate": 0.5833333333333334
+            }
+          ]
+        },
+        "risk_mode": {
+          "observations": 14,
+          "accuracy": 0.6428571428571429,
+          "brier": 0.24539330054455724,
+          "always_up_accuracy": 0.6428571428571429,
+          "high_probability_count": 0,
+          "high_probability_coverage": 0.0,
+          "high_probability_hit_rate": null,
+          "high_probability_worst_return": null,
+          "high_probability_exposure": {
+            "observations": 14,
+            "active_observations": 0,
+            "exposure": 0.0,
+            "total_return": 0.0,
+            "max_drawdown": 0.0,
+            "max_drawdown_date": null,
+            "equity_scope": "单段净值",
+            "hit_rate": null,
+            "worst_active_return": null
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 14,
+              "mean_probability": 0.5397876042100819,
+              "actual_up_rate": 0.6428571428571429
+            }
+          ]
+        },
+        "daily_sign": {
+          "observations": 14,
+          "accuracy": 0.5714285714285714,
+          "brier": 0.2539049860934478,
+          "always_up_accuracy": 0.6428571428571429,
+          "high_probability_count": 0,
+          "high_probability_coverage": 0.0,
+          "high_probability_hit_rate": null,
+          "high_probability_worst_return": null,
+          "high_probability_exposure": {
+            "observations": 14,
+            "active_observations": 0,
+            "exposure": 0.0,
+            "total_return": 0.0,
+            "max_drawdown": 0.0,
+            "max_drawdown_date": null,
+            "equity_scope": "单段净值",
+            "hit_rate": null,
+            "worst_active_return": null
+          },
+          "calibration_buckets": [
+            {
+              "range": [
+                0.4,
+                0.5
+              ],
+              "observations": 3,
+              "mean_probability": 0.48839564131284546,
+              "actual_up_rate": 0.6666666666666666
+            },
+            {
+              "range": [
+                0.5,
+                0.6
+              ],
+              "observations": 11,
+              "mean_probability": 0.5499689714613827,
+              "actual_up_rate": 0.6363636363636364
+            }
+          ]
+        }
+      },
+      "candidate_passed_screen": false,
+      "selection_status": "开发样本不足，使用基准"
+    }
+  },
+  "deployment_status": "研究结果，未替换线上规则；需新数据复核",
+  "limitations": [
+    "现有数据曾用于规则探索，本次时间留出并非全新盲测",
+    "分段独立训练，不跨2026-05-25计算特征、净值或概率",
+    "不纳入手续费、滑点和成交约束；概率不是保证"
+  ],
+  "source_sha256": "16abf5eb9ec01b9f75a212dd1b0e195e9bbd055c9a9abc601a652850cc822f86"
+}

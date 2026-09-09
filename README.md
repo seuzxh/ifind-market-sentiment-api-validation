@@ -36,6 +36,14 @@ python backtest_market_agent.py --response $response.FullName
 
 ## 开发与验证
 
+次日上涨概率研究使用同一份本地响应：
+
+```powershell
+python probability_market_agent.py --response $response.FullName --output data/probability-results.json
+```
+
+首轮候选尚未胜过简单基准，未接入默认预测；结果和后续方向见[概率验证报告](docs/agent/概率验证报告.md)。手续费、滑点和成交约束按当前优先级暂缓。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py
