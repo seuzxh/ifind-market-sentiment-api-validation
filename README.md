@@ -44,6 +44,8 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 首轮候选尚未胜过简单基准，未接入默认预测；结果和后续方向见[概率验证报告](docs/agent/概率验证报告.md)。手续费、滑点和成交约束按当前优先级暂缓。
 
+已增加[广度确认实验](docs/agent/广度确认实验.md)：用`breadth_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`对照上涨占比大于50%的过滤效果。本轮候选沪深子集留出表现未改善，默认规则不变，北交所历史广度仍待补齐。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py
