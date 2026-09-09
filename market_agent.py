@@ -539,9 +539,11 @@ def classify_market(features: Mapping[str, Any]) -> dict:
 
     if direction == "证据不足" and risk_mode == "中性":
         reasons.append("信号不足，不能形成方向判断")
+    drawdown_control = "谨慎偏多" if direction == "偏强" and risk_mode != "Risk-Off" else "观望"
     return {
         "direction": direction,
         "risk_mode": risk_mode,
+        "drawdown_control": drawdown_control,
         "reasons": reasons,
         "rules_version": RULES_VERSION,
     }
@@ -578,7 +580,7 @@ def _no_market_result(as_of: dt.date, quality_status: str, message: str) -> dict
         "rules_version": RULES_VERSION,
         "source_versions": {},
         "features": {},
-        "decision": {"direction": "无行情", "risk_mode": "中性", "reasons": [message], "rules_version": RULES_VERSION},
+        "decision": {"direction": "无行情", "risk_mode": "中性", "drawdown_control": "观望", "reasons": [message], "rules_version": RULES_VERSION},
     }
 
 
@@ -661,6 +663,7 @@ def _render_text(command: str, result: Mapping[str, Any]) -> str:
         "接口：history_data / get_trade_dates / data_pool 已返回成功响应",
         f"数据日期：{result['as_of_date']}  分段：{result['segment_id']}  质量：{result['quality_status']}",
         f"市场：{decision['direction']}  风险模式：{decision['risk_mode']}",
+        f"回撤控制：{decision.get('drawdown_control', '观望')}（历史回测规则）",
         f"主基准收益：{fmt(features.get('market_return'))}  Ret5：{fmt(features.get('ret5'))}  Ret20：{fmt(features.get('ret20'))}  Ret60：{fmt(features.get('ret60'))}",
         f"Spread：SIZE={fmt(features.get('size_spread'))}  RISK={fmt(features.get('risk_spread'))}  MOM={fmt(features.get('mom_spread'))}",
         f"广度：上涨比例={fmt(features.get('up_ratio'))}  净广度={fmt(features.get('net_breadth'))}",

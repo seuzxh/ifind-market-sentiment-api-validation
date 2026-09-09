@@ -23,6 +23,17 @@ python market_agent.py forecast --date 2026-09-08
 
 广度目前使用 `data_pool/p00112` 的 `p0=A股` 候选参数，结果会明确标记 `A_candidate_SH_SZ` 和“有限可用”，直到供应商确认沪深京纯 A 语义。接口请求、字段、复权口径和已知限制见 [iFinD API 文档](docs/ifind/API文档.md)，规则细节见 [规则说明](docs/agent/规则说明.md)。
 
+## 历史回测
+
+使用脱敏的 `history_data` 响应做离线验证，不需要令牌：
+
+```powershell
+$response = Get-ChildItem data/backtest_evidence -Recurse -Filter response.json | Select-Object -First 1
+python backtest_market_agent.py --response $response.FullName
+```
+
+回测会比较当前规则、做空版本和保守回撤门禁，并排除 2026-05-25 边界。当前采用的保守规则是“偏强且非 Risk-Off 才做多，偏弱不做空”；完整结果见 [历史回测报告](docs/agent/历史回测报告.md)。
+
 ## 开发与验证
 
 ```powershell

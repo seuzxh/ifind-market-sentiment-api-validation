@@ -286,6 +286,7 @@ class RuleTests(unittest.TestCase):
         result = classify_market(features)
         self.assertEqual(result["direction"], "偏强")
         self.assertEqual(result["risk_mode"], "Risk-On")
+        self.assertEqual(result["drawdown_control"], "谨慎偏多")
         self.assertGreaterEqual(len(result["reasons"]), 2)
 
     def test_missing_features_are_not_silent_zero(self):
