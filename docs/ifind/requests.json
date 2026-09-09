@@ -1,0 +1,326 @@
+{
+  "version": "1.0",
+  "origin": "https://quantapi.51ifind.com",
+  "note": "CPS 仅记录编号，语义未确认。日期为固定复验窗口；history_future 相对 2026-09-09 为未来，晚于该日期复验时不能继续作为未来边界证据。history_repeat 应与同次选择的 history_single 对照。",
+  "defaultTestIds": [
+    "history_single",
+    "calendar"
+  ],
+  "tests": [
+    {
+      "id": "history_single",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_18_single",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI,700050.TI,700047.TI,700035.TI,700034.TI,700038.TI,700039.TI,700033.TI,700032.TI,700036.TI,700037.TI,700046.TI,700048.TI,700049.TI,883927.TI,883958.TI,883979.TI,883900.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_18_multi",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI,700050.TI,700047.TI,700035.TI,700034.TI,700038.TI,700039.TI,700033.TI,700032.TI,700036.TI,700037.TI,700046.TI,700048.TI,700049.TI,883927.TI,883958.TI,883979.TI,883900.TI",
+          "startdate": "2026-04-01",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_cps_default",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_cps_1",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn",
+          "functionpara": {
+            "CPS": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "history_cps_2",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn",
+          "functionpara": {
+            "CPS": "2"
+          }
+        }
+      }
+    },
+    {
+      "id": "history_weekend",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-05",
+          "enddate": "2026-09-05",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_future",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-10",
+          "enddate": "2026-09-10",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "history_repeat",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "2026-09-08",
+          "enddate": "2026-09-08",
+          "indicators": "pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn"
+        }
+      }
+    },
+    {
+      "id": "calendar",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "get_trade_dates",
+      "body": {
+        "marketcode": "212001",
+        "functionpara": {
+          "mode": "1",
+          "dateType": "0",
+          "period": "D",
+          "dateFormat": "0"
+        },
+        "startdate": "2026-09-01",
+        "enddate": "2026-10-23"
+      }
+    },
+    {
+      "id": "index_directory",
+      "status": "待执行；请求成功不代表数据验收通过",
+      "endpoint": "smart_stock_picking",
+      "body": {
+        "searchstring": "同花顺特色指数",
+        "searchtype": "index"
+      }
+    },
+    {
+      "id": "calendar_history",
+      "endpoint": "get_trade_dates",
+      "body": {
+        "marketcode": "212001",
+        "functionpara": {
+          "mode": "1",
+          "dateType": "0",
+          "period": "D",
+          "dateFormat": "0"
+        },
+        "startdate": "2026-04-01",
+        "enddate": "2026-09-08"
+      },
+      "status": "待执行；部分参数为探索候选，不代表已确认契约"
+    },
+    {
+      "id": "breadth_a_candidate",
+      "endpoint": "data_pool",
+      "body": {
+        "reportname": "p00112",
+        "functionpara": {
+          "sdate": "20260901",
+          "edate": "20260908",
+          "p0": "A股"
+        },
+        "outputpara": "p00112_f001,p00112_f002,p00112_f003,p00112_f004,p00112_f005,p00112_f006,p00112_f007,p00112_f008,p00112_f009,p00112_f010,p00112_f011,p00112_f012,p00112_f013,p00112_f014"
+      },
+      "status": "待执行；部分参数为探索候选，不代表已确认契约"
+    },
+    {
+      "id": "basic_names",
+      "endpoint": "basic_data_service",
+      "body": {
+        "codes": "883957.TI,700050.TI,700047.TI,700035.TI,700034.TI,700038.TI,700039.TI,700033.TI,700032.TI,700036.TI,700037.TI,700046.TI,700048.TI,700049.TI,883927.TI,883958.TI,883979.TI,883900.TI",
+        "indipara": [
+          {
+            "indicator": "ths_index_short_name_index",
+            "indiparams": []
+          },
+          {
+            "indicator": "ths_index_full_name_index",
+            "indiparams": []
+          },
+          {
+            "indicator": "ths_index_introduction_index",
+            "indiparams": []
+          },
+          {
+            "indicator": "ths_wgt_method_index",
+            "indiparams": []
+          }
+        ]
+      },
+      "status": "待执行；部分参数为探索候选，不代表已确认契约"
+    },
+    {
+      "id": "members_current",
+      "endpoint": "data_pool",
+      "body": {
+        "reportname": "p03473",
+        "functionpara": {
+          "iv_date": "20260907",
+          "iv_zsdm": "883926.TI"
+        },
+        "outputpara": "p03473_f001,p03473_f002,p03473_f003"
+      },
+      "status": "待执行；部分参数为探索候选，不代表已确认契约"
+    },
+    {
+      "id": "history_break_default",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883958.TI,883979.TI,883900.TI",
+          "startdate": "2026-05-22",
+          "enddate": "2026-05-26",
+          "indicators": "pre_close,open,high,low,close,chg,pct_chg"
+        }
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "history_break_1",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883958.TI,883979.TI,883900.TI",
+          "startdate": "2026-05-22",
+          "enddate": "2026-05-26",
+          "indicators": "pre_close,open,high,low,close,chg,pct_chg",
+          "functionpara": {
+            "CPS": "1"
+          }
+        }
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "history_break_2",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883958.TI,883979.TI,883900.TI",
+          "startdate": "2026-05-22",
+          "enddate": "2026-05-26",
+          "indicators": "pre_close,open,high,low,close,chg,pct_chg",
+          "functionpara": {
+            "CPS": "2"
+          }
+        }
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "breadth_invalid_scope",
+      "endpoint": "data_pool",
+      "body": {
+        "reportname": "p00112",
+        "functionpara": {
+          "sdate": "20260908",
+          "edate": "20260908",
+          "p0": "__INVALID_SCOPE__"
+        },
+        "outputpara": "p00112_f001,p00112_f002,p00112_f003,p00112_f004"
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "members_history_1",
+      "endpoint": "data_pool",
+      "body": {
+        "reportname": "p03473",
+        "functionpara": {
+          "iv_date": "20260401",
+          "iv_zsdm": "883926.TI"
+        },
+        "outputpara": "p03473_f001,p03473_f002,p03473_f003,p03473_f004"
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "members_history_2",
+      "endpoint": "data_pool",
+      "body": {
+        "reportname": "p03473",
+        "functionpara": {
+          "iv_date": "20260601",
+          "iv_zsdm": "883926.TI"
+        },
+        "outputpara": "p03473_f001,p03473_f002,p03473_f003,p03473_f004"
+      },
+      "status": "待执行；异常复核和边界探测"
+    },
+    {
+      "id": "history_early",
+      "endpoint": "history_data",
+      "body": {
+        "reqBody": {
+          "codes": "883957.TI",
+          "startdate": "1990-01-01",
+          "enddate": "2010-12-31",
+          "indicators": "close"
+        }
+      },
+      "status": "待执行；异常复核和边界探测"
+    }
+  ]
+}

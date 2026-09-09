@@ -1,0 +1,100 @@
+[
+  {
+    "id": "history_break_default",
+    "endpoint": "history_data",
+    "body": {
+      "reqBody": {
+        "codes": "883958.TI,883979.TI,883900.TI",
+        "startdate": "2026-05-22",
+        "enddate": "2026-05-26",
+        "indicators": "pre_close,open,high,low,close,chg,pct_chg"
+      }
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "history_break_1",
+    "endpoint": "history_data",
+    "body": {
+      "reqBody": {
+        "codes": "883958.TI,883979.TI,883900.TI",
+        "startdate": "2026-05-22",
+        "enddate": "2026-05-26",
+        "indicators": "pre_close,open,high,low,close,chg,pct_chg",
+        "functionpara": {
+          "CPS": "1"
+        }
+      }
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "history_break_2",
+    "endpoint": "history_data",
+    "body": {
+      "reqBody": {
+        "codes": "883958.TI,883979.TI,883900.TI",
+        "startdate": "2026-05-22",
+        "enddate": "2026-05-26",
+        "indicators": "pre_close,open,high,low,close,chg,pct_chg",
+        "functionpara": {
+          "CPS": "2"
+        }
+      }
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "breadth_invalid_scope",
+    "endpoint": "data_pool",
+    "body": {
+      "reportname": "p00112",
+      "functionpara": {
+        "sdate": "20260908",
+        "edate": "20260908",
+        "p0": "__INVALID_SCOPE__"
+      },
+      "outputpara": "p00112_f001,p00112_f002,p00112_f003,p00112_f004"
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "members_history_1",
+    "endpoint": "data_pool",
+    "body": {
+      "reportname": "p03473",
+      "functionpara": {
+        "iv_date": "20260401",
+        "iv_zsdm": "883926.TI"
+      },
+      "outputpara": "p03473_f001,p03473_f002,p03473_f003,p03473_f004"
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "members_history_2",
+    "endpoint": "data_pool",
+    "body": {
+      "reportname": "p03473",
+      "functionpara": {
+        "iv_date": "20260601",
+        "iv_zsdm": "883926.TI"
+      },
+      "outputpara": "p03473_f001,p03473_f002,p03473_f003,p03473_f004"
+    },
+    "status": "待执行；异常复核和边界探测"
+  },
+  {
+    "id": "history_early",
+    "endpoint": "history_data",
+    "body": {
+      "reqBody": {
+        "codes": "883957.TI",
+        "startdate": "1990-01-01",
+        "enddate": "2010-12-31",
+        "indicators": "close"
+      }
+    },
+    "status": "待执行；异常复核和边界探测"
+  }
+]

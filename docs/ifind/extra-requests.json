@@ -1,0 +1,71 @@
+[
+  {
+    "id": "calendar_history",
+    "endpoint": "get_trade_dates",
+    "body": {
+      "marketcode": "212001",
+      "functionpara": {
+        "mode": "1",
+        "dateType": "0",
+        "period": "D",
+        "dateFormat": "0"
+      },
+      "startdate": "2026-04-01",
+      "enddate": "2026-09-08"
+    },
+    "status": "待执行；部分参数为探索候选，不代表已确认契约"
+  },
+  {
+    "id": "breadth_a_candidate",
+    "endpoint": "data_pool",
+    "body": {
+      "reportname": "p00112",
+      "functionpara": {
+        "sdate": "20260901",
+        "edate": "20260908",
+        "p0": "A股"
+      },
+      "outputpara": "p00112_f001,p00112_f002,p00112_f003,p00112_f004,p00112_f005,p00112_f006,p00112_f007,p00112_f008,p00112_f009,p00112_f010,p00112_f011,p00112_f012,p00112_f013,p00112_f014"
+    },
+    "status": "待执行；部分参数为探索候选，不代表已确认契约"
+  },
+  {
+    "id": "basic_names",
+    "endpoint": "basic_data_service",
+    "body": {
+      "codes": "883957.TI,700050.TI,700047.TI,700035.TI,700034.TI,700038.TI,700039.TI,700033.TI,700032.TI,700036.TI,700037.TI,700046.TI,700048.TI,700049.TI,883927.TI,883958.TI,883979.TI,883900.TI",
+      "indipara": [
+        {
+          "indicator": "ths_index_short_name_index",
+          "indiparams": []
+        },
+        {
+          "indicator": "ths_index_full_name_index",
+          "indiparams": []
+        },
+        {
+          "indicator": "ths_index_introduction_index",
+          "indiparams": []
+        },
+        {
+          "indicator": "ths_wgt_method_index",
+          "indiparams": []
+        }
+      ]
+    },
+    "status": "待执行；部分参数为探索候选，不代表已确认契约"
+  },
+  {
+    "id": "members_current",
+    "endpoint": "data_pool",
+    "body": {
+      "reportname": "p03473",
+      "functionpara": {
+        "iv_date": "20260907",
+        "iv_zsdm": "883926.TI"
+      },
+      "outputpara": "p03473_f001,p03473_f002,p03473_f003"
+    },
+    "status": "待执行；部分参数为探索候选，不代表已确认契约"
+  }
+]
