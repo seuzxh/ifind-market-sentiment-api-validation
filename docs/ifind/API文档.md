@@ -1,10 +1,10 @@
 # iFinD API 文档
 
-内部契约版本：v0.1（待鉴权复验）；最后核对：2026-09-09。
+内部契约版本：v0.2（终端 Agent 已接入）；最后核对：2026-09-09。
 
 ## 1. 状态与接入边界
 
-本轮已取得 REST 成功响应并完成第一轮结构检查；字段单位、复权和历史异常仍待数据验收。`history_data`、`get_trade_dates`、`data_pool`、`basic_data_service`、`smart_stock_picking` 均返回过 HTTP 200 / `errorcode=0`；无令牌的401基线也保留。`real_time_quotation`和`high_frequency`已加入待执行复验。
+本轮已取得 REST 成功响应并完成第一轮结构检查；终端 Agent 已用 `history_data`、`get_trade_dates`、`data_pool` 生成 2026-09-08 的可追溯规则结果。字段单位、复权和纯A范围仍按“请求成功”和“业务数据准入”分开记录。无令牌的401基线、实时接口和高频接口证据继续保留。
 
 | 能力 | HTTP端点，均以 `/api/v1/` 开头 | 本轮可证明的范围 |
 |---|---|---|
@@ -73,7 +73,7 @@ access_token: <运行时读取 IFIND_ACCESS_TOKEN>
 
 ### 3.1 请求模板
 
-来源：用户附件与历史对话；本轮仅发送过无令牌最小请求，尚未证明包装正确。
+来源：用户附件与历史对话；2026-09-09 已通过终端 Agent 真实重放并保存脱敏响应，包装和字段对齐可复用，单位与复权语义仍按下表限制。
 
 ```json
 {
@@ -255,3 +255,14 @@ access_token: <运行时读取 IFIND_ACCESS_TOKEN>
 原始文件只读保留；派生数据携带`request_id, fetched_at, data_date, endpoint, contract_version, source_hash, quality_status, revision`。主键建议为`instrument_code + trade_date + source + parameter_version + revision`。上游缺失、语义未知、部分返回和元数据冲突均显式标记，不静默填零、补旧日期或替换指数。
 
 维护职责：数据接入维护者更新字段契约和错误处理；研究负责人确认纯A、复权、风格用途及准入；供应商确认单位、市场范围、发布时间和修订规则。任何后续项目只可直接复用已证明的部分；“未验证”项必须完成对应复验。
+
+## 10. 终端 Agent 调用契约
+
+项目根目录的 `market_agent.py` 使用以下固定请求：
+
+1. `history_data`：18 条正式指数，`reqBody` 包装，指标为 `pre_close,open,high,low,close,vwap,chg,pct_chg,volume,amt,turn`，首版显式使用 `functionpara.CPS=1`（用户确认的后复权）。
+2. `get_trade_dates`：`marketcode=212001`、`mode=1`、`dateType=0`、`period=D`、`dateFormat=0`，用于确定指定日期是否为交易日。
+3. `data_pool`：`reportname=p00112`、`p0=A股` 候选参数，映射 `f002/f003/f004` 为上涨/平盘/下跌；结果强制标记 `A_candidate_SH_SZ`，不宣称已确认沪深京纯A语义。
+4. `real_time_quotation`：只在 `status` 查询本地当天时作为可选快照，不参与历史日回测；`null` 保留为缺失。
+
+响应进入规则计算前必须通过错误码、数组长度、目标代码、数据日期和 2026-05-25 分段检查。命令示例和稳定 JSON 字段见根目录 [README](../../README.md)；规则版本、阈值和公式见 [规则说明](../agent/规则说明.md)。本地脱敏证据写入 `data/`，该目录已加入 `.gitignore`，不会发布到 GitHub Pages。
