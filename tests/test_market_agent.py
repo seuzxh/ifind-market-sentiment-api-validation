@@ -294,6 +294,15 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(result["direction"], "证据不足")
         self.assertEqual(result["risk_mode"], "中性")
 
+    def test_risk_off_blocks_bullish_exposure(self):
+        result = classify_market({
+            "market_return": 0.01, "ret5": 0.02, "ret20": 0.03,
+            "size_spread": -0.01, "risk_spread": -0.02, "mom_spread": 0.00,
+        })
+        self.assertEqual(result["direction"], "偏强")
+        self.assertEqual(result["risk_mode"], "Risk-Off")
+        self.assertEqual(result["drawdown_control"], "观望")
+
     def test_cross_segment_features_are_rejected(self):
         with self.assertRaises(ValueError):
             compute_features([
