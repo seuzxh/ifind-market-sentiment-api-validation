@@ -149,6 +149,30 @@ class SecurityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             client.post("http://example.com", {})
 
+    def test_business_error_does_not_echo_token(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def getcode(self):
+                return 200
+
+            def read(self):
+                return json.dumps({"errorcode": -1, "errmsg": "secret-token rejected"}).encode()
+
+        class FakeOpener:
+            def open(self, request, timeout):
+                return FakeResponse()
+
+        with patch("market_agent.urllib.request.build_opener", return_value=FakeOpener()):
+            client = IfindClient("secret-token")
+            with self.assertRaises(ValueError) as raised:
+                client.post("history_data", {})
+        self.assertNotIn("secret-token", str(raised.exception))
+
 
 class NormalizationTests(unittest.TestCase):
     def test_breadth_preserves_null_and_percent_units(self):

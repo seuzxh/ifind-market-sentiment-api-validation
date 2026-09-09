@@ -21,13 +21,12 @@ import argparse
 import sys
 
 
-def _ok(payload: Mapping[str, Any]) -> None:
+def _ok(payload: Mapping[str, Any], token: str = "") -> None:
     """检查 iFinD 顶层业务错误码。"""
 
     if payload.get("errorcode") != 0:
-        raise ValueError(
-            f"iFinD业务错误: {payload.get('errorcode')} {payload.get('errmsg', '')}"
-        )
+        message = f"iFinD业务错误: {payload.get('errorcode')} {payload.get('errmsg', '')}"
+        raise ValueError(redact_text(message, token) if token else message)
 
 
 def parse_history_response(payload: dict) -> list[dict]:
@@ -250,7 +249,7 @@ class IfindClient:
             self._write_evidence(endpoint, body, response_text, status, None)
             raise ValueError("iFinD响应不是合法JSON") from None
         self._write_evidence(endpoint, body, response_text, status, payload.get("errorcode"))
-        _ok(payload)
+        _ok(payload, self.token)
         return payload
 
     def fetch_history(
@@ -601,7 +600,13 @@ def _build_result(as_of: dt.date, client: IfindClient, include_realtime: bool = 
     history = client.fetch_history(FORMAL_CODES, start, end, cps="1")
     primary_rows = [row for row in history if row.get("instrument_code") == PRIMARY_CODE and str(row.get("trade_date", ""))[:10] == end]
     if not primary_rows or _number(primary_rows[-1].get("close")) is None:
-        return _no_market_result(as_of, "无行情", "指定日期没有可用的收盘行情")
+        result = _no_market_result(as_of, "无行情", "指定日期没有可用的收盘行情")
+        if include_realtime:
+            try:
+                result["realtime"] = client.fetch_realtime(PRIMARY_CODE)
+            except (RuntimeError, ValueError):
+                result["realtime"] = None
+        return result
     breadth = client.fetch_breadth(start, end)
     features = compute_features(history, breadth)
     quality = "有限可用" if features.get("breadth_quality_status") != "完整" else "完整"
@@ -634,7 +639,13 @@ def _save_result(result: dict, data_root: Path = Path("data")) -> Path:
 
 def _render_text(command: str, result: Mapping[str, Any]) -> str:
     if result["quality_status"] in {"无行情", "边界日"}:
-        return f"数据日期：{result['as_of_date']}  分段：{result.get('segment_id') or '-'}  质量：{result['quality_status']}\n限制：{result['decision']['reasons'][0]}"
+        lines = [f"数据日期：{result['as_of_date']}  分段：{result.get('segment_id') or '-'}  质量：{result['quality_status']}", f"限制：{result['decision']['reasons'][0]}"]
+        realtime = result.get("realtime")
+        if realtime:
+            lines.append(
+                f"盘中快照：上涨家数={realtime.get('riseCount', '缺失')}  下跌家数={realtime.get('fallCount', '缺失')}  涨停={realtime.get('upLimitCount', '缺失')}  跌停={realtime.get('downLimitCount', '缺失')}"
+            )
+        return "\n".join(lines)
     features = result["features"]
     decision = result["decision"]
     def fmt(value: Any) -> str:
