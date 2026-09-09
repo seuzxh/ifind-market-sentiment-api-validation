@@ -389,3 +389,152 @@ def fetch_realtime(code: str = "883957.TI", client: IfindClient | None = None) -
         _get_client(client).post("real_time_quotation", {"codes": code, "indicators": indicators}),
         code=code,
     )
+
+
+PRIMARY_CODE = "883957.TI"
+STYLE_PAIRS = {
+    "SIZE": ("700050.TI", "700047.TI"),
+    "RISK": ("700035.TI", "700034.TI"),
+    "MOM": ("700038.TI", "700039.TI"),
+}
+SUPPLEMENTAL_CODES = {
+    "high_dividend": "883927.TI",
+    "yesterday_limit_up": "883958.TI",
+    "yesterday_first_board": "883979.TI",
+    "yesterday_limit_up_performance": "883900.TI",
+}
+RULES_VERSION = "rules-v1"
+
+
+def _daily_return(row: Mapping[str, Any]) -> float | None:
+    close = _number(row.get("close"))
+    pre_close = _number(row.get("pre_close"))
+    if close is not None and pre_close not in (None, 0):
+        return close / pre_close - 1
+    pct = _number(row.get("pct_chg"))
+    return pct / 100 if pct is not None else None
+
+
+def _series_by_code(rows: Sequence[Mapping[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        code = str(row.get("instrument_code") or row.get("thscode") or "")
+        if not code:
+            continue
+        grouped.setdefault(code, []).append(dict(row))
+    for values in grouped.values():
+        values.sort(key=lambda row: str(row.get("trade_date", "")))
+        validate_same_segment([str(row["trade_date"]) for row in values if row.get("trade_date")])
+    return grouped
+
+
+def _close_return(series: Sequence[Mapping[str, Any]], periods: int) -> float | None:
+    if len(series) <= periods:
+        return None
+    latest = _number(series[-1].get("close"))
+    earlier = _number(series[-1 - periods].get("close"))
+    if latest is None or earlier in (None, 0):
+        return None
+    return latest / earlier - 1
+
+
+def _latest_return(series: Sequence[Mapping[str, Any]], as_of: str) -> float | None:
+    for row in reversed(series):
+        if str(row.get("trade_date", ""))[:10] == as_of:
+            return _daily_return(row)
+    return None
+
+
+def _spread(grouped: Mapping[str, Sequence[Mapping[str, Any]]], pair: tuple[str, str], as_of: str) -> float | None:
+    positive = _latest_return(grouped.get(pair[0], []), as_of)
+    negative = _latest_return(grouped.get(pair[1], []), as_of)
+    return positive - negative if positive is not None and negative is not None else None
+
+
+def compute_features(rows: list[dict], breadth_rows: list[dict]) -> dict:
+    """计算同一分段内的首版市场特征；不足窗口返回 None。"""
+
+    grouped = _series_by_code(rows)
+    primary = grouped.get(PRIMARY_CODE, [])
+    if not primary:
+        raise ValueError("缺少主基准883957.TI行情")
+    as_of = str(primary[-1].get("trade_date", ""))[:10]
+    segment_id = segment_for_date(as_of)
+    if segment_id is None:
+        raise ValueError("主基准日期位于2026-05-25分析边界")
+    breadth = [dict(row) for row in breadth_rows if row.get("trade_date")]
+    validate_same_segment([str(row["trade_date"]) for row in breadth])
+    breadth_latest = next((row for row in reversed(breadth) if str(row.get("trade_date"))[:10] == as_of), {})
+    features: dict[str, Any] = {
+        "as_of_date": as_of,
+        "segment_id": segment_id,
+        "market_return": _latest_return(primary, as_of),
+        "ret5": _close_return(primary, 5),
+        "ret20": _close_return(primary, 20),
+        "ret60": _close_return(primary, 60),
+        "size_spread": _spread(grouped, STYLE_PAIRS["SIZE"], as_of),
+        "risk_spread": _spread(grouped, STYLE_PAIRS["RISK"], as_of),
+        "mom_spread": _spread(grouped, STYLE_PAIRS["MOM"], as_of),
+        "up_ratio": breadth_latest.get("up_ratio"),
+        "net_breadth": breadth_latest.get("net_breadth"),
+        "breadth_scope": breadth_latest.get("scope"),
+        "breadth_quality_status": breadth_latest.get("quality_status", "缺失"),
+        "supplemental_returns": {
+            name: _latest_return(grouped.get(code, []), as_of)
+            for name, code in SUPPLEMENTAL_CODES.items()
+        },
+    }
+    return features
+
+
+def classify_market(features: Mapping[str, Any]) -> dict:
+    """按 rules-v1 输出方向和风险模式，不输出概率。"""
+
+    reasons: list[str] = []
+    market_return = features.get("market_return")
+    ret5 = features.get("ret5")
+    ret20 = features.get("ret20")
+    direction = "证据不足"
+    if all(isinstance(value, (int, float)) for value in (market_return, ret5, ret20)):
+        if market_return > 0 and ret5 > 0 and ret20 > 0:
+            direction = "偏强"
+            reasons.extend(["主基准收益为正", "Ret5/Ret20与当日方向同向为正"])
+        elif market_return < 0 and ret5 < 0 and ret20 < 0:
+            direction = "偏弱"
+            reasons.extend(["主基准收益为负", "Ret5/Ret20与当日方向同向为负"])
+        else:
+            direction = "震荡"
+            reasons.append("主基准与5/20日趋势方向不一致")
+    else:
+        reasons.append("主基准或Ret5/Ret20数据不足")
+
+    spreads = [features.get(key) for key in ("size_spread", "risk_spread", "mom_spread")]
+    positive = sum(isinstance(value, (int, float)) and value > 0 for value in spreads)
+    negative = sum(isinstance(value, (int, float)) and value < 0 for value in spreads)
+    if positive >= 2:
+        risk_mode = "Risk-On"
+        reasons.append("SIZE/RISK/MOM中至少两组Spread为正")
+    elif negative >= 2:
+        risk_mode = "Risk-Off"
+        reasons.append("SIZE/RISK/MOM中至少两组Spread为负")
+    else:
+        risk_mode = "中性"
+        if any(value is None for value in spreads):
+            reasons.append("风格Spread数据不足")
+
+    up_ratio = features.get("up_ratio")
+    net_breadth = features.get("net_breadth")
+    if isinstance(up_ratio, (int, float)) and isinstance(net_breadth, (int, float)):
+        if up_ratio >= 0.5 and net_breadth > 0:
+            reasons.append("上涨比例不低于50%且净广度为正，支持普涨")
+        elif isinstance(market_return, (int, float)) and market_return > 0 and net_breadth <= 0:
+            reasons.append("指数上涨但净广度不为正，存在权重托举风险")
+
+    if direction == "证据不足" and risk_mode == "中性":
+        reasons.append("信号不足，不能形成方向判断")
+    return {
+        "direction": direction,
+        "risk_mode": risk_mode,
+        "reasons": reasons,
+        "rules_version": RULES_VERSION,
+    }

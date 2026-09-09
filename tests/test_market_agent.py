@@ -17,6 +17,8 @@ from market_agent import (
     fetch_calendar,
     fetch_history,
     fetch_realtime,
+    classify_market,
+    compute_features,
     load_token_from_values,
     normalize_breadth,
     normalize_realtime,
@@ -216,6 +218,37 @@ class FetchContractTests(unittest.TestCase):
         row = fetch_realtime("883957.TI", fake)
         self.assertEqual(row["instrument_code"], "883957.TI")
         self.assertEqual(row["latest"], 101)
+
+
+class RuleTests(unittest.TestCase):
+    def test_bullish_rule_needs_two_style_spreads(self):
+        features = {
+            "market_return": 0.01,
+            "ret5": 0.02,
+            "ret20": 0.03,
+            "size_spread": 0.01,
+            "risk_spread": 0.02,
+            "mom_spread": -0.01,
+            "net_breadth": 0.20,
+            "up_ratio": 0.60,
+            "segment_id": "B",
+        }
+        result = classify_market(features)
+        self.assertEqual(result["direction"], "偏强")
+        self.assertEqual(result["risk_mode"], "Risk-On")
+        self.assertGreaterEqual(len(result["reasons"]), 2)
+
+    def test_missing_features_are_not_silent_zero(self):
+        result = classify_market({"segment_id": "B"})
+        self.assertEqual(result["direction"], "证据不足")
+        self.assertEqual(result["risk_mode"], "中性")
+
+    def test_cross_segment_features_are_rejected(self):
+        with self.assertRaises(ValueError):
+            compute_features([
+                {"instrument_code": "883957.TI", "trade_date": "2026-05-22", "close": 100, "pre_close": 99},
+                {"instrument_code": "883957.TI", "trade_date": "2026-05-26", "close": 101, "pre_close": 100},
+            ], [])
 
 
 if __name__ == "__main__":
