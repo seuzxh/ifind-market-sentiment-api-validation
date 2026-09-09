@@ -2,7 +2,8 @@ import datetime as dt
 import unittest
 from unittest.mock import patch
 
-from breadth_market_agent import run_experiment
+from breadth_market_agent import run_experiment, run_exploration, _event_values, _breadth_index
+from market_agent import PRIMARY_CODE
 
 
 def payload(rows):
@@ -73,6 +74,81 @@ class BreadthTests(unittest.TestCase):
         for key, part in (("A", a), ("B", b)):
             separate = experiment(part, [(s["date"], 6, 1, 3) for s in part])
             self.assertEqual(result["segments"][key], separate["segments"][key])
+
+
+class BreadthExplorationTests(unittest.TestCase):
+    def event_rows(self, part, rows):
+        history = [{"instrument_code": PRIMARY_CODE, "trade_date": s["date"]} for s in part]
+        return _event_values(part, history, _breadth_index(payload(rows))[0])
+
+    def test_future_breadth_does_not_change_earlier_events(self):
+        part = samples(6)
+        rows = [(s["date"], i+1, 0, 9-i) for i, s in enumerate(part)]
+        before = self.event_rows(part, rows)
+        rows[-1] = (part[-1]["date"], 0, 0, 10)
+        after = self.event_rows(part, rows)
+        self.assertEqual(before[:-1], after[:-1])
+        self.assertTrue(before[3]["events"]["rising_3"])
+
+    def test_missing_previous_breadth_cannot_skip_to_older_date(self):
+        part = samples(4)
+        rows = [(part[0]["date"], 1, 0, 9), (part[2]["date"], 8, 0, 2),
+                (part[3]["date"], 9, 0, 1)]
+        events = self.event_rows(part, rows)
+        self.assertIsNone(events[2]["events"]["rising_1"])
+        self.assertIsNone(events[2]["events"]["rebound_from_washout"])
+        self.assertIsNone(events[3]["events"]["rising_3"])
+        self.assertTrue(events[3]["events"]["rising_1"])
+
+    def test_previous_segment_is_not_a_valid_prior_day(self):
+        part = samples(1, dt.date(2026, 5, 22)) + samples(1, dt.date(2026, 5, 26), "B")
+        rows = [(part[0]["date"], 1, 0, 9), (part[1]["date"], 8, 0, 2)]
+        events = self.event_rows(part, rows)
+        self.assertIsNone(events[1]["events"]["rising_1"])
+        self.assertIsNone(events[1]["events"]["rebound_from_washout"])
+
+    def test_prior_day_uses_raw_history_even_if_signal_sample_missing(self):
+        part = samples(3)
+        history = [{"instrument_code": PRIMARY_CODE, "trade_date": s["date"]} for s in part]
+        breadth = _breadth_index(payload([(part[0]["date"], 1, 0, 9),
+                                         (part[2]["date"], 8, 0, 2)]))[0]
+        events = _event_values([part[0], part[2]], history, breadth)
+        self.assertIsNone(events[1]["events"]["rising_1"])
+
+    def test_fixed_thresholds_and_divergence_use_current_information(self):
+        part = samples(4)
+        part[1]["features"] = {"market_return": -0.01}
+        part[2]["features"] = {"market_return": 0.01}
+        events = self.event_rows(part, [(part[0]["date"], 2, 0, 8),
+                                       (part[1]["date"], 6, 0, 4),
+                                       (part[2]["date"], 4, 0, 6),
+                                       (part[3]["date"], 8, 0, 2)])
+        self.assertTrue(events[0]["events"]["washout"])
+        self.assertTrue(events[1]["events"]["positive_divergence"])
+        self.assertTrue(events[1]["events"]["rebound_from_washout"])
+        self.assertTrue(events[2]["events"]["negative_divergence"])
+        self.assertTrue(events[3]["events"]["broad_rally"])
+
+    def test_test_labels_do_not_change_candidate_and_baseline_matches(self):
+        part = samples(100)
+        history = [{"instrument_code": PRIMARY_CODE, "trade_date": s["date"]} for s in part]
+        rows = payload([(s["date"], 9, 0, 1) for s in part])
+        with patch("breadth_market_agent.build_signal_rows", return_value=part):
+            before = run_exploration(history, rows)
+        for sample in part[70:]:
+            sample["next_return"] = -0.9
+        with patch("breadth_market_agent.build_signal_rows", return_value=part):
+            after = run_exploration(history, rows)
+        self.assertEqual(before["segments"]["A"]["selected"], "broad_rally")
+        self.assertEqual(after["segments"]["A"]["selected"], "broad_rally")
+        for method in after["segments"]["A"]["methods"].values():
+            for view in method.values():
+                for phase in view.values():
+                    self.assertEqual(phase["eligible_dates"], phase["baseline"]["eligible_dates"])
+                    self.assertEqual(phase["eligible_count"], phase["baseline"]["event_count"])
+        self.assertFalse(after["deployment_allowed"])
+        self.assertEqual(after["comparison_count"], 14)
+        self.assertIsNone(after["segments"]["B"]["selected"])
 
 
 if __name__ == "__main__":

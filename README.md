@@ -46,6 +46,8 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 已增加[广度确认实验](docs/agent/广度确认实验.md)：用`breadth_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`对照上涨占比大于50%的过滤效果。本轮候选沪深子集留出表现未改善，默认规则不变，北交所历史广度仍待补齐。
 
+同一命令追加`--explore`，可复现7种广度形态、14个视角的[扩展探索](docs/agent/广度扩展探索.md)。候选只在开发期选择，所有结果保留供回溯，不能把小样本命中率当作实时上涨概率。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py
