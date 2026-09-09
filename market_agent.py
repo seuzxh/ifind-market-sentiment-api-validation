@@ -348,8 +348,10 @@ def normalize_breadth(payload: dict) -> list[dict]:
         down = _number(raw.get("p00112_f004"))
         total = sum(value for value in (up, flat, down) if value is not None)
         complete = all(value is not None for value in (up, flat, down)) and total > 0
+        raw_date = raw.get("p00112_f001")
+        trade_date = "" if raw_date is None else str(raw_date).replace("/", "-")[:10]
         row = {
-            "trade_date": str(raw.get("p00112_f001", "")).replace("/", "-")[:10],
+            "trade_date": trade_date,
             "up": up,
             "flat": flat,
             "down": down,
@@ -656,11 +658,13 @@ def _render_text(command: str, result: Mapping[str, Any]) -> str:
     def fmt(value: Any) -> str:
         return "缺失" if value is None else f"{value:.4f}" if isinstance(value, float) else str(value)
     lines = [
+        "接口：history_data / get_trade_dates / data_pool 已返回成功响应",
         f"数据日期：{result['as_of_date']}  分段：{result['segment_id']}  质量：{result['quality_status']}",
         f"市场：{decision['direction']}  风险模式：{decision['risk_mode']}",
         f"主基准收益：{fmt(features.get('market_return'))}  Ret5：{fmt(features.get('ret5'))}  Ret20：{fmt(features.get('ret20'))}  Ret60：{fmt(features.get('ret60'))}",
         f"Spread：SIZE={fmt(features.get('size_spread'))}  RISK={fmt(features.get('risk_spread'))}  MOM={fmt(features.get('mom_spread'))}",
         f"广度：上涨比例={fmt(features.get('up_ratio'))}  净广度={fmt(features.get('net_breadth'))}",
+        f"观察指数：高股息={fmt(features.get('supplemental_returns', {}).get('high_dividend'))}  昨日连板={fmt(features.get('supplemental_returns', {}).get('yesterday_limit_up'))}  昨日首板={fmt(features.get('supplemental_returns', {}).get('yesterday_first_board'))}  昨日涨停={fmt(features.get('supplemental_returns', {}).get('yesterday_limit_up_performance'))}",
         f"依据：{'；'.join(decision.get('reasons', []))}",
     ]
     if features.get("breadth_scope"):
