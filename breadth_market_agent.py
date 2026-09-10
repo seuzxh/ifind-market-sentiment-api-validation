@@ -83,7 +83,7 @@ def run_experiment(history_rows, breadth_payload):
     return {
         "experiment_version": "breadth-confirm-v1",
         "scope": "A_candidate_SH_SZ", "deployment_allowed": False,
-        "scope_status": "候选沪深A股，未证实覆盖沪深京；仅研究",
+        "scope_status": "沪深A股广度，用户确认无需北交所；实验规则仅研究",
         "target": "偏强信号筛选后次日上涨（收益>0）的条件命中率，不是校准后的上涨概率",
         "confirmation_rule": "direction=偏强 且 up/(up+flat+down)>0.5",
         "min_train": MIN_TRAIN,
@@ -194,7 +194,7 @@ def run_exploration(history_rows, breadth_payload):
         }
     return {
         "experiment_version": "breadth-explore-v1", "deployment_allowed": False,
-        "scope": "A_candidate_SH_SZ", "scope_status": "候选沪深A股，未证实覆盖沪深京；仅研究",
+        "scope": "A_candidate_SH_SZ", "scope_status": "沪深A股广度，用户确认无需北交所；实验规则仅研究",
         "target": "七种条件下次日上涨（收益>0）的发生率，均不预设做空方向",
         "selection_rule": "每段仅开发期standalone事件>=20且覆盖>=10%参与选择；命中率最高，平手按定义顺序",
         "split_rule": "每段原样本max(40,floor(n*0.7))开始留出；开发期从第40项开始；缺失不移动切分",

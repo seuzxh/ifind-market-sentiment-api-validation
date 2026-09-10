@@ -671,7 +671,7 @@ def _render_text(command: str, result: Mapping[str, Any]) -> str:
         f"依据：{'；'.join(decision.get('reasons', []))}",
     ]
     if features.get("breadth_scope"):
-        lines.append(f"限制：广度范围标记为{features['breadth_scope']}，纯A沪深京语义仍待供应商最终确认")
+        lines.append(f"广度范围：沪深A股，不要求北交所；来源标记为{features['breadth_scope']}")
     if command == "forecast":
         lines.insert(1, f"下一交易日倾向：{decision['direction']}（规则判断，不是概率预测）")
     return "\n".join(lines)

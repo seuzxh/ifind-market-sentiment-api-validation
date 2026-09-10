@@ -2,7 +2,7 @@
   "experiment_version": "breadth-explore-v1",
   "deployment_allowed": false,
   "scope": "A_candidate_SH_SZ",
-  "scope_status": "候选沪深A股，未证实覆盖沪深京；仅研究",
+  "scope_status": "沪深A股广度，用户确认无需北交所；实验规则仅研究",
   "target": "七种条件下次日上涨（收益>0）的发生率，均不预设做空方向",
   "selection_rule": "每段仅开发期standalone事件>=20且覆盖>=10%参与选择；命中率最高，平手按定义顺序",
   "split_rule": "每段原样本max(40,floor(n*0.7))开始留出；开发期从第40项开始；缺失不移动切分",

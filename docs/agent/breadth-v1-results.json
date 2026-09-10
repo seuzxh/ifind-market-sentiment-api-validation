@@ -2,7 +2,7 @@
   "experiment_version": "breadth-confirm-v1",
   "scope": "A_candidate_SH_SZ",
   "deployment_allowed": false,
-  "scope_status": "候选沪深A股，未证实覆盖沪深京；仅研究",
+  "scope_status": "沪深A股广度，用户确认无需北交所；实验规则仅研究",
   "target": "偏强信号筛选后次日上涨（收益>0）的条件命中率，不是校准后的上涨概率",
   "confirmation_rule": "direction=偏强 且 up/(up+flat+down)>0.5",
   "min_train": 40,

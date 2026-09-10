@@ -21,7 +21,7 @@ python market_agent.py forecast --date 2026-09-08
 
 方向标签是“偏强 / 震荡 / 偏弱”，风险标签是“Risk-On / 中性 / Risk-Off”。规则只使用主基准收益、Ret5/20/60、SIZE/RISK/MOM Spread 和候选广度；缺失信号不会被当成零。`vwap` 按接口定义记录为均价，但首版不拿它决定方向。结论是规则提示，不是投资建议，也不包含概率预测或交易执行。
 
-广度目前使用 `data_pool/p00112` 的 `p0=A股` 候选参数，结果会明确标记 `A_candidate_SH_SZ` 和“有限可用”，直到供应商确认沪深京纯 A 语义。接口请求、字段、复权口径和已知限制见 [iFinD API 文档](docs/ifind/API文档.md)，规则细节见 [规则说明](docs/agent/规则说明.md)。
+广度使用 `data_pool/p00112` 的 `p0=A股` 参数。2026-09-10用户确认涨跌家数只需沪深纯A股，不要求北交所，不再以缺少北交所数据阻塞研究。来源标签 `A_candidate_SH_SZ` 和历史质量标记保留用于追溯，不表示仍需补北交所。主基准代码保持 `883957.TI`。接口请求、字段、复权口径和已知限制见 [iFinD API 文档](docs/ifind/API文档.md)，规则细节见 [规则说明](docs/agent/规则说明.md)。
 
 ## 历史回测
 
@@ -44,7 +44,7 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 首轮候选尚未胜过简单基准，未接入默认预测；结果和后续方向见[概率验证报告](docs/agent/概率验证报告.md)。手续费、滑点和成交约束按当前优先级暂缓。
 
-已增加[广度确认实验](docs/agent/广度确认实验.md)：用`breadth_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`对照上涨占比大于50%的过滤效果。本轮候选沪深子集留出表现未改善，默认规则不变，北交所历史广度仍待补齐。
+已增加[广度确认实验](docs/agent/广度确认实验.md)：用`breadth_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`对照上涨占比大于50%的过滤效果。沪深数据留出表现未改善，默认规则不变；不要求补齐北交所历史广度。
 
 同一命令追加`--explore`，可复现7种广度形态、14个视角的[扩展探索](docs/agent/广度扩展探索.md)。候选只在开发期选择，所有结果保留供回溯，不能把小样本命中率当作实时上涨概率。
 
