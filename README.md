@@ -48,6 +48,8 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 同一命令追加`--explore`，可复现7种广度形态、14个视角的[扩展探索](docs/agent/广度扩展探索.md)。候选只在开发期选择，所有结果保留供回溯，不能把小样本命中率当作实时上涨概率。
 
+指数是否为噪音可用`ablation_market_agent.py --response <行情响应>`逐组剔除验证，详见[指数剔除消融](docs/agent/指数剔除消融.md)。本轮RISK和MOM对回撤门禁有保护作用，辅助指数剔除不改变结果。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py
