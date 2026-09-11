@@ -50,6 +50,8 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 指数是否为噪音可用`ablation_market_agent.py --response <行情响应>`逐组剔除验证，详见[指数剔除消融](docs/agent/指数剔除消融.md)。本轮RISK和MOM对回撤门禁有保护作用，辅助指数剔除不改变结果。
 
+风格组权重可用`weight_market_agent.py --response <行情响应>`复现[风格权重验证](docs/agent/风格权重验证.md)。固定的SIZE、RISK、MOM权重方案均未在留出期同时提升命中率和回撤，默认等权规则保持不变。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py

@@ -1,0 +1,506 @@
+{
+  "experiment_version": "weights-v1",
+  "target": "同花顺全A883957.TI下一交易日涨跌；权重仅影响风险门禁",
+  "threshold": 2.0,
+  "variants": {
+    "equal": {
+      "SIZE": 1.0,
+      "RISK": 1.0,
+      "MOM": 1.0
+    },
+    "SIZE_priority": {
+      "SIZE": 1.5,
+      "RISK": 1.0,
+      "MOM": 0.5
+    },
+    "RISK_priority": {
+      "SIZE": 0.5,
+      "RISK": 1.5,
+      "MOM": 1.0
+    },
+    "MOM_priority": {
+      "SIZE": 0.5,
+      "RISK": 1.0,
+      "MOM": 1.5
+    },
+    "RISK_MOM_consensus": {
+      "SIZE": 0.5,
+      "RISK": 1.0,
+      "MOM": 1.0
+    }
+  },
+  "split_rule": "各分段沿用max(40,floor(n*0.7))留出起点；先看开发期，留出期只验证",
+  "segments": {
+    "A": {
+      "sample_count": 312,
+      "split_index": 218,
+      "test_start": "2025-12-25",
+      "variants": {
+        "equal": {
+          "weights": {
+            "SIZE": 1.0,
+            "RISK": 1.0,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 178,
+            "risk_modes": {
+              "Risk-On": 101,
+              "中性": 0,
+              "Risk-Off": 77
+            },
+            "conservative_long_flat": {
+              "observations": 178,
+              "active_observations": 48,
+              "exposure": 0.2696629213483146,
+              "total_return": 0.03947875289552005,
+              "max_drawdown": -0.030862470429806277,
+              "max_drawdown_date": "2025-12-22",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5625,
+              "worst_active_return": -0.01777978036248018
+            }
+          },
+          "test": {
+            "observations": 94,
+            "risk_modes": {
+              "Risk-On": 60,
+              "中性": 0,
+              "Risk-Off": 34
+            },
+            "conservative_long_flat": {
+              "observations": 94,
+              "active_observations": 19,
+              "exposure": 0.20212765957446807,
+              "total_return": 0.055428434120753156,
+              "max_drawdown": -0.02641157556000895,
+              "max_drawdown_date": "2026-05-13",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5789473684210527,
+              "worst_active_return": -0.017637461432962853
+            }
+          }
+        },
+        "SIZE_priority": {
+          "weights": {
+            "SIZE": 1.5,
+            "RISK": 1.0,
+            "MOM": 0.5
+          },
+          "development": {
+            "observations": 178,
+            "risk_modes": {
+              "Risk-On": 72,
+              "中性": 58,
+              "Risk-Off": 48
+            },
+            "conservative_long_flat": {
+              "observations": 178,
+              "active_observations": 60,
+              "exposure": 0.33707865168539325,
+              "total_return": 0.04815580579074208,
+              "max_drawdown": -0.05615948351939626,
+              "max_drawdown_date": "2025-11-17",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5833333333333334,
+              "worst_active_return": -0.023572817816534086
+            }
+          },
+          "test": {
+            "observations": 94,
+            "risk_modes": {
+              "Risk-On": 34,
+              "中性": 40,
+              "Risk-Off": 20
+            },
+            "conservative_long_flat": {
+              "observations": 94,
+              "active_observations": 25,
+              "exposure": 0.26595744680851063,
+              "total_return": 0.06613220800441066,
+              "max_drawdown": -0.042372307492705374,
+              "max_drawdown_date": "2026-04-22",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.56,
+              "worst_active_return": -0.01839157932357982
+            }
+          }
+        },
+        "RISK_priority": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.5,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 178,
+            "risk_modes": {
+              "Risk-On": 69,
+              "中性": 52,
+              "Risk-Off": 57
+            },
+            "conservative_long_flat": {
+              "observations": 178,
+              "active_observations": 53,
+              "exposure": 0.29775280898876405,
+              "total_return": 0.022663094954648688,
+              "max_drawdown": -0.03526055607646317,
+              "max_drawdown_date": "2025-12-22",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5283018867924528,
+              "worst_active_return": -0.01777978036248018
+            }
+          },
+          "test": {
+            "observations": 94,
+            "risk_modes": {
+              "Risk-On": 48,
+              "中性": 15,
+              "Risk-Off": 31
+            },
+            "conservative_long_flat": {
+              "observations": 94,
+              "active_observations": 19,
+              "exposure": 0.20212765957446807,
+              "total_return": 0.055428434120753156,
+              "max_drawdown": -0.02641157556000895,
+              "max_drawdown_date": "2026-05-13",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5789473684210527,
+              "worst_active_return": -0.017637461432962853
+            }
+          }
+        },
+        "MOM_priority": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.0,
+            "MOM": 1.5
+          },
+          "development": {
+            "observations": 178,
+            "risk_modes": {
+              "Risk-On": 86,
+              "中性": 22,
+              "Risk-Off": 70
+            },
+            "conservative_long_flat": {
+              "observations": 178,
+              "active_observations": 51,
+              "exposure": 0.28651685393258425,
+              "total_return": 0.0492117638750702,
+              "max_drawdown": -0.030862470429806388,
+              "max_drawdown_date": "2025-12-22",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5686274509803921,
+              "worst_active_return": -0.01777978036248018
+            }
+          },
+          "test": {
+            "observations": 94,
+            "risk_modes": {
+              "Risk-On": 57,
+              "中性": 9,
+              "Risk-Off": 28
+            },
+            "conservative_long_flat": {
+              "observations": 94,
+              "active_observations": 21,
+              "exposure": 0.22340425531914893,
+              "total_return": 0.058651353719042065,
+              "max_drawdown": -0.02641157556000906,
+              "max_drawdown_date": "2026-05-13",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5714285714285714,
+              "worst_active_return": -0.017637461432962853
+            }
+          }
+        },
+        "RISK_MOM_consensus": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.0,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 178,
+            "risk_modes": {
+              "Risk-On": 54,
+              "中性": 74,
+              "Risk-Off": 50
+            },
+            "conservative_long_flat": {
+              "observations": 178,
+              "active_observations": 56,
+              "exposure": 0.3146067415730337,
+              "total_return": 0.032238654920495824,
+              "max_drawdown": -0.035260556076462835,
+              "max_drawdown_date": "2025-12-22",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5357142857142857,
+              "worst_active_return": -0.01777978036248018
+            }
+          },
+          "test": {
+            "observations": 94,
+            "risk_modes": {
+              "Risk-On": 45,
+              "中性": 24,
+              "Risk-Off": 25
+            },
+            "conservative_long_flat": {
+              "observations": 94,
+              "active_observations": 21,
+              "exposure": 0.22340425531914893,
+              "total_return": 0.058651353719042065,
+              "max_drawdown": -0.02641157556000906,
+              "max_drawdown_date": "2026-05-13",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.5714285714285714,
+              "worst_active_return": -0.017637461432962853
+            }
+          }
+        }
+      }
+    },
+    "B": {
+      "sample_count": 54,
+      "split_index": 40,
+      "test_start": "2026-08-19",
+      "variants": {
+        "equal": {
+          "weights": {
+            "SIZE": 1.0,
+            "RISK": 1.0,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 0,
+            "risk_modes": {
+              "Risk-On": 0,
+              "中性": 0,
+              "Risk-Off": 0
+            },
+            "conservative_long_flat": {
+              "observations": 0,
+              "active_observations": 0,
+              "exposure": 0,
+              "total_return": 0.0,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": null,
+              "worst_active_return": null
+            }
+          },
+          "test": {
+            "observations": 14,
+            "risk_modes": {
+              "Risk-On": 6,
+              "中性": 0,
+              "Risk-Off": 8
+            },
+            "conservative_long_flat": {
+              "observations": 14,
+              "active_observations": 3,
+              "exposure": 0.21428571428571427,
+              "total_return": 0.014131288649261942,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": 1.0,
+              "worst_active_return": 0.0025029224705930275
+            }
+          }
+        },
+        "SIZE_priority": {
+          "weights": {
+            "SIZE": 1.5,
+            "RISK": 1.0,
+            "MOM": 0.5
+          },
+          "development": {
+            "observations": 0,
+            "risk_modes": {
+              "Risk-On": 0,
+              "中性": 0,
+              "Risk-Off": 0
+            },
+            "conservative_long_flat": {
+              "observations": 0,
+              "active_observations": 0,
+              "exposure": 0,
+              "total_return": 0.0,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": null,
+              "worst_active_return": null
+            }
+          },
+          "test": {
+            "observations": 14,
+            "risk_modes": {
+              "Risk-On": 2,
+              "中性": 9,
+              "Risk-Off": 3
+            },
+            "conservative_long_flat": {
+              "observations": 14,
+              "active_observations": 5,
+              "exposure": 0.35714285714285715,
+              "total_return": 0.01510719348848033,
+              "max_drawdown": -0.006560828144673514,
+              "max_drawdown_date": "2026-09-01",
+              "equity_scope": "单段净值",
+              "hit_rate": 0.8,
+              "worst_active_return": -0.006560828144673625
+            }
+          }
+        },
+        "RISK_priority": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.5,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 0,
+            "risk_modes": {
+              "Risk-On": 0,
+              "中性": 0,
+              "Risk-Off": 0
+            },
+            "conservative_long_flat": {
+              "observations": 0,
+              "active_observations": 0,
+              "exposure": 0,
+              "total_return": 0.0,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": null,
+              "worst_active_return": null
+            }
+          },
+          "test": {
+            "observations": 14,
+            "risk_modes": {
+              "Risk-On": 6,
+              "中性": 2,
+              "Risk-Off": 6
+            },
+            "conservative_long_flat": {
+              "observations": 14,
+              "active_observations": 4,
+              "exposure": 0.2857142857142857,
+              "total_return": 0.026174652585619018,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": 1.0,
+              "worst_active_return": 0.0025029224705930275
+            }
+          }
+        },
+        "MOM_priority": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.0,
+            "MOM": 1.5
+          },
+          "development": {
+            "observations": 0,
+            "risk_modes": {
+              "Risk-On": 0,
+              "中性": 0,
+              "Risk-Off": 0
+            },
+            "conservative_long_flat": {
+              "observations": 0,
+              "active_observations": 0,
+              "exposure": 0,
+              "total_return": 0.0,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": null,
+              "worst_active_return": null
+            }
+          },
+          "test": {
+            "observations": 14,
+            "risk_modes": {
+              "Risk-On": 6,
+              "中性": 0,
+              "Risk-Off": 8
+            },
+            "conservative_long_flat": {
+              "observations": 14,
+              "active_observations": 3,
+              "exposure": 0.21428571428571427,
+              "total_return": 0.014131288649261942,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": 1.0,
+              "worst_active_return": 0.0025029224705930275
+            }
+          }
+        },
+        "RISK_MOM_consensus": {
+          "weights": {
+            "SIZE": 0.5,
+            "RISK": 1.0,
+            "MOM": 1.0
+          },
+          "development": {
+            "observations": 0,
+            "risk_modes": {
+              "Risk-On": 0,
+              "中性": 0,
+              "Risk-Off": 0
+            },
+            "conservative_long_flat": {
+              "observations": 0,
+              "active_observations": 0,
+              "exposure": 0,
+              "total_return": 0.0,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": null,
+              "worst_active_return": null
+            }
+          },
+          "test": {
+            "observations": 14,
+            "risk_modes": {
+              "Risk-On": 6,
+              "中性": 2,
+              "Risk-Off": 6
+            },
+            "conservative_long_flat": {
+              "observations": 14,
+              "active_observations": 4,
+              "exposure": 0.2857142857142857,
+              "total_return": 0.026174652585619018,
+              "max_drawdown": 0.0,
+              "max_drawdown_date": null,
+              "equity_scope": "单段净值",
+              "hit_rate": 1.0,
+              "worst_active_return": 0.0025029224705930275
+            }
+          }
+        }
+      }
+    }
+  },
+  "deployment_allowed": false,
+  "limitations": [
+    "方向标签不随权重变化，命中率只衡量谨慎偏多信号的次日上涨率",
+    "固定少量权重，不做网格搜索或基于留出结果调参",
+    "同一历史已用于探索，时间留出不是全新盲测；净值为简化指数暴露"
+  ],
+  "source_sha256": "16abf5eb9ec01b9f75a212dd1b0e195e9bbd055c9a9abc601a652850cc822f86"
+}
