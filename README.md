@@ -54,6 +54,14 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 亏钱效应可用`losing_effect_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`复现[广度型亏钱效应验证](docs/agent/亏钱效应验证.md)。线上快照新增`down_ratio`和`loss_effect`解释字段；它们不改变`rules-v1`，也不生成自动交易信号。
 
+本轮按顺序补做了三组特征实验：
+
+- [涨跌家数变化验证](docs/agent/涨跌家数变化验证.md)：日变化和三日变化没有稳定提升，默认广度规则不变。
+- [趋势强度和波动率验证](docs/agent/趋势强度波动率验证.md)：固定的趋势、加速和波动状态没有稳定改善，默认规则不变。
+- [风格信号持续性验证](docs/agent/风格持续性验证.md)：`any2_positive_3d` 是目前最值得用新数据复核的候选，但仍未自动部署。
+
+以上实验均保留对应脚本和 JSON 结果，且 `deployment_allowed=false`。亏钱效应是独立解释维度，当前刻画的是沪深纯 A 股的下跌扩散，不能代替个股亏损幅度分析。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py
