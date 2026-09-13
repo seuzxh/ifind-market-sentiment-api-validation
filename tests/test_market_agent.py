@@ -223,6 +223,21 @@ class NormalizationTests(unittest.TestCase):
         self.assertIsNone(row["flat"])
         self.assertIsNone(row["net_breadth"])
 
+    def test_breadth_non_finite_values_are_missing(self):
+        for invalid in (float("nan"), float("inf"), float("-inf")):
+            payload = {"errorcode": 0, "tables": [{"table": {
+                "p00112_f001": ["2026/09/08"],
+                "p00112_f002": [invalid],
+                "p00112_f003": [1],
+                "p00112_f004": [2],
+            }}]}
+            with self.subTest(invalid=invalid):
+                row = normalize_breadth(payload)[0]
+                self.assertEqual(row["quality_status"], "缺失")
+                self.assertIsNone(row["up_ratio"])
+                self.assertIsNone(row["down_ratio"])
+                self.assertIsNone(row["net_breadth"])
+
     def test_realtime_keeps_null(self):
         payload = {"errorcode": 0, "tables": [{"table": {
             "riseCount": [2066], "fallCount": [3304], "suspensionCount": [None]

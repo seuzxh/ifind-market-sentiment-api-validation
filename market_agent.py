@@ -10,6 +10,7 @@ import datetime as dt
 from collections.abc import Mapping, Sequence
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import urllib.error
@@ -346,8 +347,12 @@ def normalize_breadth(payload: dict) -> list[dict]:
         up = _number(raw.get("p00112_f002"))
         flat = _number(raw.get("p00112_f003"))
         down = _number(raw.get("p00112_f004"))
-        total = sum(value for value in (up, flat, down) if value is not None)
-        complete = all(value is not None for value in (up, flat, down)) and total > 0
+        values = (up, flat, down)
+        complete = all(
+            value is not None and math.isfinite(float(value)) for value in values
+        )
+        total = sum(float(value) for value in values) if complete else 0.0
+        complete = complete and total > 0
         raw_date = raw.get("p00112_f001")
         trade_date = "" if raw_date is None else str(raw_date).replace("/", "-")[:10]
         row = {
@@ -417,7 +422,7 @@ LOSS_EFFECT_RULES_VERSION = "rules-v1-loss-effect"
 def classify_loss_effect(down_ratio: Any) -> str:
     """按固定广度阈值描述亏钱效应，不改变方向和交易规则。"""
 
-    if not isinstance(down_ratio, (int, float)):
+    if not isinstance(down_ratio, (int, float)) or not math.isfinite(float(down_ratio)):
         return "数据不足"
     if down_ratio >= 0.60:
         return "强"

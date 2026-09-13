@@ -17,6 +17,9 @@ def sample(date, segment="A", market_return=0.01):
 class LosingEffectTests(unittest.TestCase):
     def test_fixed_intensity_boundaries(self):
         self.assertEqual(classify_loss_effect(None), "数据不足")
+        self.assertEqual(classify_loss_effect(float("nan")), "数据不足")
+        self.assertEqual(classify_loss_effect(float("inf")), "数据不足")
+        self.assertEqual(classify_loss_effect(float("-inf")), "数据不足")
         self.assertEqual(classify_loss_effect(0.50), "不明显")
         self.assertEqual(classify_loss_effect(0.5001), "偏强")
         self.assertEqual(classify_loss_effect(0.5999), "偏强")
