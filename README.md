@@ -52,6 +52,8 @@ python probability_market_agent.py --response $response.FullName --output data/p
 
 风格组权重可用`weight_market_agent.py --response <行情响应>`复现[风格权重验证](docs/agent/风格权重验证.md)。固定的SIZE、RISK、MOM权重方案均未在留出期同时提升命中率和回撤，默认等权规则保持不变。
 
+亏钱效应可用`losing_effect_market_agent.py --history-response <行情响应> --breadth-response <广度响应>`复现[广度型亏钱效应验证](docs/agent/亏钱效应验证.md)。线上快照新增`down_ratio`和`loss_effect`解释字段；它们不改变`rules-v1`，也不生成自动交易信号。
+
 ```powershell
 python -m unittest discover -s tests -v
 python -m py_compile market_agent.py

@@ -21,6 +21,7 @@ from market_agent import (
     fetch_history,
     fetch_realtime,
     classify_market,
+    classify_loss_effect,
     compute_features,
     load_token_from_values,
     normalize_breadth,
@@ -271,6 +272,11 @@ class FetchContractTests(unittest.TestCase):
 
 
 class RuleTests(unittest.TestCase):
+    def test_loss_effect_is_an_independent_fixed_field(self):
+        self.assertEqual(classify_loss_effect(0.60), "强")
+        self.assertEqual(classify_loss_effect(0.55), "偏强")
+        self.assertEqual(classify_loss_effect(0.50), "不明显")
+
     def test_bullish_rule_needs_two_style_spreads(self):
         features = {
             "market_return": 0.01,

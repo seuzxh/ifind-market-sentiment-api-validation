@@ -411,6 +411,19 @@ SUPPLEMENTAL_CODES = {
     "yesterday_limit_up_performance": "883900.TI",
 }
 RULES_VERSION = "rules-v1"
+LOSS_EFFECT_RULES_VERSION = "rules-v1-loss-effect"
+
+
+def classify_loss_effect(down_ratio: Any) -> str:
+    """按固定广度阈值描述亏钱效应，不改变方向和交易规则。"""
+
+    if not isinstance(down_ratio, (int, float)):
+        return "数据不足"
+    if down_ratio >= 0.60:
+        return "强"
+    if down_ratio > 0.50:
+        return "偏强"
+    return "不明显"
 
 
 def _daily_return(row: Mapping[str, Any]) -> float | None:
@@ -483,7 +496,10 @@ def compute_features(rows: list[dict], breadth_rows: list[dict]) -> dict:
         "risk_spread": _spread(grouped, STYLE_PAIRS["RISK"], as_of),
         "mom_spread": _spread(grouped, STYLE_PAIRS["MOM"], as_of),
         "up_ratio": breadth_latest.get("up_ratio"),
+        "down_ratio": breadth_latest.get("down_ratio"),
         "net_breadth": breadth_latest.get("net_breadth"),
+        "loss_effect": classify_loss_effect(breadth_latest.get("down_ratio")),
+        "loss_effect_rules_version": LOSS_EFFECT_RULES_VERSION,
         "breadth_scope": breadth_latest.get("scope"),
         "breadth_quality_status": breadth_latest.get("quality_status", "缺失"),
         "supplemental_returns": {
@@ -666,7 +682,8 @@ def _render_text(command: str, result: Mapping[str, Any]) -> str:
         f"回撤控制：{decision.get('drawdown_control', '观望')}（历史回测规则）",
         f"主基准收益：{fmt(features.get('market_return'))}  Ret5：{fmt(features.get('ret5'))}  Ret20：{fmt(features.get('ret20'))}  Ret60：{fmt(features.get('ret60'))}",
         f"Spread：SIZE={fmt(features.get('size_spread'))}  RISK={fmt(features.get('risk_spread'))}  MOM={fmt(features.get('mom_spread'))}",
-        f"广度：上涨比例={fmt(features.get('up_ratio'))}  净广度={fmt(features.get('net_breadth'))}",
+        f"广度：上涨比例={fmt(features.get('up_ratio'))}  下跌比例={fmt(features.get('down_ratio'))}  净广度={fmt(features.get('net_breadth'))}",
+        f"亏钱效应：{features.get('loss_effect', '数据不足')}（广度型；{features.get('loss_effect_rules_version', LOSS_EFFECT_RULES_VERSION)}）",
         f"观察指数：高股息={fmt(features.get('supplemental_returns', {}).get('high_dividend'))}  昨日连板={fmt(features.get('supplemental_returns', {}).get('yesterday_limit_up'))}  昨日首板={fmt(features.get('supplemental_returns', {}).get('yesterday_first_board'))}  昨日涨停={fmt(features.get('supplemental_returns', {}).get('yesterday_limit_up_performance'))}",
         f"依据：{'；'.join(decision.get('reasons', []))}",
     ]
